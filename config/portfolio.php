@@ -1,0 +1,53 @@
+<?php
+// Default content. Profile, projects and blog are edited from /admin; the rest is edited here.
+return [
+    'name' => 'Noor Mohammad Babu',
+    'role' => 'Sales & Marketing Professional | Web Designer & Developer | Digital Marketing & SEO',
+    'intro' => 'Since 2007, I have been building my professional career in Sales & Marketing while continuously expanding my expertise in Web Development, Digital Marketing, SEO, Graphics Design and other digital technologies.',
+    'email' => 'your@email.com',
+    'about' => [
+        'I have worked in Sales & Marketing since 2007 and continue to do so today. Over the years I have gained practical experience in sales, marketing, customer relationship management, business development, market analysis and professional communication.',
+        'Alongside that career, I built practical skills in the IT and digital field: web design, web development, digital marketing, SEO, graphics design, social media marketing and data entry. I have designed and developed multiple websites and digital projects.',
+        'This mix lets me look at a problem as both a business person and a builder, and connect what customers need with what technology can deliver.'
+    ],
+    'pillars' => ['Business Knowledge', 'Sales & Marketing', 'Technology', 'Digital Skills'],
+    'experience' => [['2007 – Present', 'Sales & Marketing Professional', '[Add company / role details]', ['Sales', 'Marketing', 'Business Development', 'Customer Relationship Management', 'Market Analysis', 'Product Promotion', 'Client Communication', 'Business Strategy', 'Sales Planning']]],
+    'show_graphics' => false, // set true only after you confirm you use these tools
+    'graphics' => [['Adobe Photoshop', 'Graphics', 'Image editing and design.'], ['Adobe Illustrator', 'Graphics', 'Vector graphics.'], ['Canva', 'Graphics', 'Quick visual content.']],
+    'stack' => [
+        ['HTML5', 'Frontend', 'Semantic, accessible page structure.'],
+        ['CSS3', 'Frontend', 'Modern, responsive styling.'],
+        ['JavaScript', 'Frontend', 'Used to create interactive and dynamic web experiences.'],
+        ['Bootstrap', 'Frontend', 'Rapid responsive interfaces.'],
+        ['jQuery', 'Frontend', 'DOM scripting.'],
+        ['Responsive Web Design', 'Frontend', 'Layouts for every screen.'],
+        ['AJAX', 'Frontend', 'Updating pages without reloads.'],
+        ['PHP', 'Backend', 'Server-side web development.'],
+        ['Laravel', 'Backend', 'Used for developing modern, scalable PHP web applications.'],
+        ['MySQL', 'Database', 'Used for structured data storage and database-driven web applications.'],
+        ['SQL', 'Database', 'Querying relational data.'],
+        ['Git', 'Tools', 'Version control.'],
+        ['GitHub', 'Tools', 'Code hosting.'],
+        ['VS Code', 'Tools', 'Code editor.'],
+        ['Composer', 'Tools', 'PHP dependencies.'],
+        ['npm', 'Tools', 'JS packages.'],
+        ['cPanel', 'Web & Hosting', 'Hosting administration.'],
+        ['Apache', 'Web & Hosting', 'Web server.'],
+        ['Domain & Hosting', 'Web & Hosting', 'Domain and hosting management.'],
+        ['SSL/HTTPS', 'Web & Hosting', 'Secure delivery.'],
+        ['Deployment', 'Web & Hosting', 'Publishing to production.'],
+        ['SEO', 'Digital', 'Search engine optimization.'],
+        ['Google Analytics', 'Digital', 'Traffic reporting.'],
+        ['Search Console', 'Digital', 'Search visibility.'],
+        ['Social Media Marketing', 'Digital', 'Content and presence.'],
+        ['Digital Marketing', 'Digital', 'Online growth.'],
+        ['Content Optimization', 'Digital', 'Better content for users and search.']
+    ],
+    'skills' => ['Web & Development' => ['Web Design', 'Web Development', 'PHP', 'Laravel', 'HTML5', 'CSS3', 'JavaScript', 'Bootstrap', 'jQuery', 'MySQL'], 'Digital Marketing' => ['Digital Marketing', 'SEO', 'Social Media Marketing', 'Content Optimization'], 'Creative' => ['Graphics Design'], 'Other' => ['Data Entry', 'Data Management', 'Website Management', 'Domain & Hosting Management']],
+    'cats' => ['Web Design', 'Web Development', 'Laravel', 'Business', 'E-commerce', 'Blog/News', 'Digital'],
+    'placeholder_projects' => [['Project Title 1', 'Web Development', '[Add in Admin > Projects]'], ['Project Title 2', 'Laravel', '[Add in Admin > Projects]'], ['Project Title 3', 'Web Design', '[Add in Admin > Projects]']],
+    'services' => [['Web Design & Development', 'Modern, responsive websites and web applications.'], ['Digital Marketing', 'Digital strategies designed to improve online visibility and business growth.'], ['SEO', 'Search engine optimization and website visibility improvement.'], ['Social Media Marketing', 'Social media strategy, content and digital presence management.'], ['Graphics Design', 'Professional graphics and visual content.'], ['Data Entry', 'Accurate data entry and digital data management.']],
+    'workflow' => [['Understand', 'Understand the client\'s business and requirements.'], ['Plan', 'Develop the project strategy and technical approach.'], ['Design', 'Create a modern, user-friendly design.'], ['Develop', 'Build the website using the appropriate technology stack.'], ['Optimize', 'Improve performance, SEO, usability and responsiveness.'], ['Deliver', 'Test and deliver a production-ready solution.']],
+    'stats' => [['2007', 'Career Started'], ['17+', 'Years of Professional Experience'], ['Multiple', 'Websites & Digital Projects'], ['Multiple', 'IT & Digital Skills']],
+    'why' => ['17+ years of Sales & Marketing experience', 'Practical IT knowledge', 'Business-focused thinking', 'Web development experience', 'Digital marketing knowledge', 'SEO knowledge', 'Creative problem solving', 'Professional communication', 'Continuous learning', 'Understanding of both business and technology'],
+];
