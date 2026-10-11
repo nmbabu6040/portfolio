@@ -15,6 +15,11 @@
             <loc>{{ url('/projects/' . $pr->id) }}</loc>
         </url>
     @endforeach
+    @foreach ($cats as $c)
+        <url>
+            <loc>{{ url('/blog/category/' . $c->slug) }}</loc>
+        </url>
+    @endforeach
     @foreach ($posts as $po)
         <url>
             <loc>{{ url('/blog/' . $po->slug) }}</loc>

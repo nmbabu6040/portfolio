@@ -171,8 +171,13 @@
     </div>
     <div class="foot-bar mt-4 pt-3 d-flex flex-wrap justify-content-between gap-2 small">
         <span>© {{ date('Y') }} {{ $nm }}. All rights reserved.</span>
-        <span><a href="{{ url('/blog') }}">Blog</a> · <a href="{{ url('/privacy') }}">Privacy</a> · <a
-                href="{{ url('/sitemap.xml') }}">Sitemap</a> · Sales &amp; Marketing since 2007</span>
+        <span><a href="{{ url('/blog') }}">Blog</a> · <a href="{{ url('/privacy') }}">Privacy</a>
+            @if (!empty($s['affiliate_domains']))
+                ·
+                <a href="{{ url('/affiliate-disclosure') }}">Affiliate disclosure</a>
+            @endif · <a href="{{ url('/sitemap.xml') }}">Sitemap</a> · Sales &amp;
+            Marketing since 2007
+        </span>
     </div>
 </div>
 </footer>

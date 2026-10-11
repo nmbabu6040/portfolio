@@ -2,9 +2,21 @@
 
 namespace App\Support;
 
+use App\Models\Setting;
+
 class Html
 {
     const TAGS = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'pre', 'code', 'span'];
+    private static ?array $dom = null;
+    private static array $sp = [];
+    public static function domains(): array
+    {
+        if (self::$dom === null) {
+            $raw = Setting::map()['affiliate_domains'] ?? '';
+            self::$dom = array_values(array_filter(array_map(fn($d) => strtolower(explode('/', preg_replace('#^(https?://)?(www\.)?#i', '', trim($d)))[0]), preg_split('/[\s,]+/', $raw))));
+        }
+        return self::$dom;
+    }
     public static function clean(string $html): string
     {
         if (trim($html) === '') return '';
@@ -20,7 +32,11 @@ class Html
     }
     public static function render(string $b): string
     {
-        return strip_tags($b) === $b ? nl2br(e($b)) : self::clean($b);
+        if (strip_tags($b) === $b) return nl2br(e($b));
+        self::$sp = self::domains();
+        $out = self::clean($b);
+        self::$sp = [];
+        return $out;
     }
     private static function walk(\DOMNode $n): void
     {
@@ -46,7 +62,15 @@ class Html
                 if (!$ok) $c->removeAttribute($a->name);
             }
             if ($t === 'a') {
-                $c->setAttribute('rel', 'noopener noreferrer');
+                $host = strtolower((string) parse_url($c->getAttribute('href'), PHP_URL_HOST));
+                $rel = 'noopener noreferrer';
+                foreach (self::$sp as $d) {
+                    if ($host !== '' && ($host === $d || str_ends_with($host, '.' . $d))) {
+                        $rel = 'sponsored nofollow noopener noreferrer';
+                        break;
+                    }
+                }
+                $c->setAttribute('rel', $rel);
                 $c->setAttribute('target', '_blank');
             }
             self::walk($c);

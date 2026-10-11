@@ -18,6 +18,15 @@ class SiteController extends Controller
     {
         return view($view, ['s' => Setting::map(), 'p' => config('portfolio')] + $d);
     }
+    private function cats()
+    {
+        return Entry::of('categories')->newQuery()->orderBy('sort')->orderBy('id')->get()
+            ->map(function ($c) {
+                $c->n = Post::where('published', 1)->where('category', $c->slug)->count();
+                return $c;
+            })
+            ->filter(fn($c) => $c->n > 0)->values();
+    }
     public function home()
     {
         return $this->v('home', [
@@ -61,12 +70,14 @@ class SiteController extends Controller
     {
         return $this->v('pages.contact');
     }
-
     public function privacy()
     {
         return $this->v('pages.privacy');
     }
-
+    public function affiliate()
+    {
+        return $this->v('pages.affiliate');
+    }
     public function quotePage()
     {
         return $this->v('pages.quote', ['services' => $this->q('services')->get()]);
@@ -97,15 +108,24 @@ class SiteController extends Controller
     }
     public function blog()
     {
-        return view('blog.index', ['s' => Setting::map(), 'posts' => Post::where('published', 1)->latest()->paginate(10)]);
+        return view('blog.index', ['s' => Setting::map(), 'posts' => Post::where('published', 1)->latest()->paginate(9), 'cats' => $this->cats(), 'active' => null]);
+    }
+    public function category(string $slug)
+    {
+        $cat = Entry::of('categories')->newQuery()->where('slug', $slug)->firstOrFail();
+        return view('blog.index', ['s' => Setting::map(), 'posts' => Post::where('published', 1)->where('category', $slug)->latest()->paginate(9), 'cats' => $this->cats(), 'active' => $cat]);
     }
     public function post(string $slug)
     {
-        return view('blog.show', ['s' => Setting::map(), 'post' => Post::where('published', 1)->where('slug', $slug)->firstOrFail()]);
+        $post = Post::where('published', 1)->where('slug', $slug)->firstOrFail();
+        $related = Post::where('published', 1)->where('id', '!=', $post->id)
+            ->when($post->category, fn($q) => $q->orderByRaw('category = ? desc', [$post->category]))->latest()->limit(3)->get();
+        $cat = $post->category ? Entry::of('categories')->newQuery()->where('slug', $post->category)->first() : null;
+        return view('blog.show', ['s' => Setting::map(), 'post' => $post, 'related' => $related, 'cat' => $cat]);
     }
     public function sitemap()
     {
-        return response()->view('sitemap', ['posts' => Post::where('published', 1)->get(), 'services' => $this->q('services')->get(), 'projects' => $this->q('projects')->get()])->header('Content-Type', 'application/xml');
+        return response()->view('sitemap', ['posts' => Post::where('published', 1)->get(), 'services' => $this->q('services')->get(), 'projects' => $this->q('projects')->get(), 'cats' => $this->cats()])->header('Content-Type', 'application/xml');
     }
     public function contact(Request $r)
     {

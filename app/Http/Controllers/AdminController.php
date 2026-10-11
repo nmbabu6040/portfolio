@@ -36,7 +36,13 @@ class AdminController extends Controller
             'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']
         ],
 
-        'Legal' => ['privacy_policy' => ['rich', 'nullable']],
+        'Legal' => [
+            'privacy_policy' => ['rich', 'nullable'],
+            'affiliate_disclosure' => ['rich', 'nullable']
+        ],
+        'Affiliate' => [
+            'affiliate_domains' => ['textarea', 'nullable|max:1000']
+        ],
 
         'Email (SMTP)' => [
             'mail_host' => ['input', 'nullable|max:150'],

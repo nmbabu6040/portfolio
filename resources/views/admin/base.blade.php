@@ -40,9 +40,10 @@
                 'reasons' => 'bi-check2-circle',
                 'faqs' => 'bi-question-circle',
                 'testimonials' => 'bi-chat-quote',
+                'categories' => 'bi-tags',
             ];
             $groups = [
-                'Content' => ['projects', 'posts', 'services', 'faqs', 'testimonials'],
+                'Content' => ['projects', 'posts', 'categories', 'services', 'faqs', 'testimonials'],
                 'Career' => ['experiences', 'educations', 'certifications', 'achievements'],
                 'Site data' => ['technologies', 'skills', 'workflows', 'stats', 'reasons'],
             ];

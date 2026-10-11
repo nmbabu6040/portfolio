@@ -21,8 +21,14 @@
         'whatsapp' => 'With country code, e.g. +8801XXXXXXXXX',
         'service' => 'Pick a service to show it on that service page, or General for the Services page',
         'quote' => "The client's own words. Do not edit them to sound better.",
-        'permission' => 'Required: tick only if this is a real client and you have their permission to publish this review',
+        'permission' =>
+            'Required: tick only if this is a real client and you have their permission to publish this review',
+        'has_affiliate' => 'Shows an affiliate disclosure at the top of this post',
+        'affiliate_domains' =>
+            'One domain per line, e.g. amzn.to. Links to these domains get rel="sponsored nofollow" automatically',
+        'affiliate_disclosure' => 'Leave empty to show the default text on /affiliate-disclosure',
     ];
+
 @endphp
 @foreach ($f as $n => $x)
     <div class="mb-3">
@@ -50,6 +56,13 @@
                 <option value="">General (shown on the Services page)</option>
                 @foreach (\App\Models\Entry::of('services')->newQuery()->orderBy('sort')->get(['title', 'slug']) as $sv)
                     <option value="{{ $sv->slug }}" @selected(old($n, data_get($v, $n, '')) == $sv->slug)>{{ $sv->title }}</option>
+                @endforeach
+            </select>
+        @elseif($x[0] == 'category')
+            <select name="{{ $n }}" class="form-select">
+                <option value="">No category</option>
+                @foreach (\App\Models\Entry::of('categories')->newQuery()->orderBy('sort')->get(['title', 'slug']) as $c)
+                    <option value="{{ $c->slug }}" @selected(old($n, data_get($v, $n, '')) == $c->slug)>{{ $c->title }}</option>
                 @endforeach
             </select>
         @elseif($x[0] == 'number')

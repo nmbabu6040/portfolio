@@ -5,12 +5,15 @@ namespace App\Providers;
 use App\Models\{Entry, Post};
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void {}
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         $safe = function (callable $q) {
             try {
                 return $q();

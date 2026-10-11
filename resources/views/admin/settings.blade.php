@@ -1,6 +1,13 @@
 @extends('admin.base')
 @section('c')
-    @php $icons = ['SEO' => 'bi-search', 'Analytics' => 'bi-graph-up', 'Email (SMTP)' => 'bi-envelope-at']; @endphp
+    @php
+        $icons = [
+            'SEO' => 'bi-search',
+            'Analytics' => 'bi-graph-up',
+            'Email (SMTP)' => 'bi-envelope-at',
+            'Affiliate' => 'bi-link-45deg',
+        ];
+    @endphp
     <div class="mb-4">
         <h1 class="h4 mb-0">Profile &amp; Settings</h1>
         <p class="text-body-secondary small mb-0">Everything shown on your website</p>
@@ -13,8 +20,9 @@
                     <div class="fgrid">@include('admin.fields', ['f' => $g['Profile'], 'v' => $s])</div>
                 </div>
                 <div class="acard p-4">
-                    <h2 class="h6 mb-1"><i class="bi bi-shield-check me-2 text-primary"></i>Privacy Policy</h2>
-                    <p class="small text-body-secondary mb-3">Leave empty to show the default policy on /privacy.</p>
+                    <h2 class="h6 mb-1"><i class="bi bi-shield-check me-2 text-primary"></i>Legal pages</h2>
+                    <p class="small text-body-secondary mb-3">Leave a field empty to show the default text on that page
+                        (/privacy and /affiliate-disclosure).</p>
                     @include('admin.fields', ['f' => $g['Legal'], 'v' => $s])
                 </div>
             </div>

@@ -26,6 +26,12 @@ class Img
         imagesavealpha($src, true);
         $name = bin2hex(random_bytes(8));
         imagewebp($src, "$dir/$name.webp", 82);
+        // JPEG copy for social share previews (some platforms do not show WebP)
+        $bg = imagecreatetruecolor(imagesx($src), imagesy($src));
+        imagefill($bg, 0, 0, imagecolorallocate($bg, 255, 255, 255));
+        imagecopy($bg, $src, 0, 0, 0, 0, imagesx($src), imagesy($src));
+        imagejpeg($bg, "$dir/$name.jpg", 85);
+        imagedestroy($bg);
         imagedestroy($src);
         return "storage/uploads/$name.webp";
     }

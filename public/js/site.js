@@ -133,3 +133,37 @@
         };
     });
 })();
+
+// share: copy link + native share sheet
+document.querySelectorAll("[data-copy]").forEach(function (b) {
+    b.onclick = function () {
+        var t = b.dataset.copy,
+            l = b.querySelector("span"),
+            o = l.textContent;
+        var done = function () {
+            l.textContent = "Copied!";
+            setTimeout(function () {
+                l.textContent = o;
+            }, 1800);
+        };
+        if (navigator.clipboard) navigator.clipboard.writeText(t).then(done);
+        else {
+            var x = document.createElement("textarea");
+            x.value = t;
+            document.body.appendChild(x);
+            x.select();
+            document.execCommand("copy");
+            x.remove();
+            done();
+        }
+    };
+});
+if (navigator.share)
+    document.querySelectorAll("[data-native]").forEach(function (b) {
+        b.classList.remove("d-none");
+        b.onclick = function () {
+            navigator
+                .share({ title: b.dataset.title, url: b.dataset.url })
+                .catch(function () {});
+        };
+    });
