@@ -23,7 +23,7 @@ class SiteController extends Controller
         return $this->v('home', [
             'tech' => $this->q('technologies')->where('visible', 1)->get(),
             'services' => $this->q('services')->get(),
-            'projects' => $this->q('projects')->take(3)->get(),
+            'projects' => Entry::of('projects')->newQuery()->orderBy('sort')->orderByDesc('id')->limit(3)->get(),
             'stats' => $this->q('stats')->get()
         ]);
     }
@@ -41,7 +41,7 @@ class SiteController extends Controller
     }
     public function projects()
     {
-        return $this->v('pages.projects', ['projects' => $this->q('projects')->get()]);
+        return $this->v('pages.projects', ['projects' => Entry::of('projects')->newQuery()->orderBy('sort')->orderByDesc('id')->get()]);
     }
     public function project(int $id)
     {
@@ -60,6 +60,40 @@ class SiteController extends Controller
     public function contactPage()
     {
         return $this->v('pages.contact');
+    }
+
+    public function privacy()
+    {
+        return $this->v('pages.privacy');
+    }
+
+    public function quotePage()
+    {
+        return $this->v('pages.quote', ['services' => $this->q('services')->get()]);
+    }
+    public function quote(Request $r)
+    {
+        $d = $r->validate(['name' => 'required|min:2|max:100', 'email' => 'required|email|max:150', 'phone' => 'nullable|max:40', 'service' => 'required|max:150', 'budget' => 'nullable|max:100', 'deadline' => 'nullable|max:60', 'message' => 'required|min:10|max:3000', 'website' => 'max:0']);
+        Entry::of('messages')->newQuery()->create([
+            'name' => $d['name'],
+            'email' => $d['email'],
+            'phone' => $d['phone'] ?? null,
+            'subject' => 'Quote request: ' . $d['service'],
+            'message' => $d['message'],
+            'kind' => 'quote',
+            'service' => $d['service'],
+            'budget' => $d['budget'] ?? null,
+            'deadline' => $d['deadline'] ?? null
+        ]);
+        try {
+            $s = Setting::map();
+            MailConfig::apply($s);
+            $to = $s['email'] ?? config('portfolio.email');
+            Mail::raw("New quote request\n\nService: {$d['service']}\nBudget: " . ($d['budget'] ?? '-') . "\nDeadline: " . ($d['deadline'] ?? '-') . "\n\nName: {$d['name']}\nEmail: {$d['email']}\nPhone: " . ($d['phone'] ?? '') . "\n\n{$d['message']}", fn($m) => $m->to($to)->replyTo($d['email'])->subject('Quote request: ' . $d['service']));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        return redirect('/quote')->with('sent', 'Thank you! I have received your request and will reply with details soon.');
     }
     public function blog()
     {

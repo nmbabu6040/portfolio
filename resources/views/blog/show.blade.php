@@ -4,8 +4,8 @@
     $tt = urlencode($post->title);
     $desc = $post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($post->body), 150);
 @endphp
-@section('title', $post->title . ' | ' . ($s['name'] ?? config('portfolio.name')))
-@section('desc', $desc)
+@section('title', $post->seo_title ?: $post->title . ' | ' . ($s['name'] ?? config('portfolio.name')))
+@section('desc', $post->seo_description ?: $desc)
 @section('og_type', 'article')
 @if ($post->image)
     @section('og_image', asset($post->image))

@@ -13,7 +13,10 @@ Route::get('/projects/{id}', [SiteController::class, 'project'])->whereNumber('i
 Route::get('/services', [SiteController::class, 'services']);
 Route::get('/services/{slug}', [SiteController::class, 'service']);
 Route::get('/contact', [SiteController::class, 'contactPage']);
+Route::get('/privacy', [SiteController::class, 'privacy']);
 Route::post('/contact', [SiteController::class, 'contact'])->middleware('throttle:5,1');
+Route::get('/quote', [SiteController::class, 'quotePage']);
+Route::post('/quote', [SiteController::class, 'quote'])->middleware('throttle:5,1');
 Route::get('/blog', [SiteController::class, 'blog']);
 Route::get('/blog/{slug}', [SiteController::class, 'post']);
 Route::get('/sitemap.xml', [SiteController::class, 'sitemap']);
@@ -27,6 +30,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('settings/test-mail', [AdminController::class, 'testMail']);
     Route::get('password', [AdminController::class, 'passwordForm']);
     Route::post('password', [AdminController::class, 'passwordSave']);
+    Route::get('backup', [AdminController::class, 'backupForm']);
+    Route::post('backup/download', [AdminController::class, 'backupDownload']);
     Route::post('upload', [AdminController::class, 'upload']);
     Route::get('messages', [AdminController::class, 'messages']);
     Route::post('messages/{id}/read', [AdminController::class, 'read']);

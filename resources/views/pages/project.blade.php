@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @use('App\Support\Ui')
 @php $name = $s['name'] ?? $p['name']; @endphp
-@section('title', $pr->title . ' | ' . $name)
-@section('desc', \Illuminate\Support\Str::limit(strip_tags((string) $pr->description), 155))
+@section('title', $pr->seo_title ?: $pr->title . ' | ' . $name)
+@section('desc', $pr->seo_description ?: \Illuminate\Support\Str::limit(strip_tags((string) $pr->description), 155))
 @if ($pr->image)
     @section('og_image', asset($pr->image))
 @endif

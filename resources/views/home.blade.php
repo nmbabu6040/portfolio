@@ -131,5 +131,6 @@
         </div>
     </section>
 
+    @include('sections.reviews')
     @include('sections.stats')
 @endsection

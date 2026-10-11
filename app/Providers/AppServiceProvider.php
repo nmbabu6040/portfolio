@@ -11,13 +11,31 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void {}
     public function boot(): void
     {
-        View::composer('layouts.app', function ($view) {
+        $safe = function (callable $q) {
             try {
-                $view->with('fs', Entry::of('services')->newQuery()->orderBy('sort')->limit(6)->get(['title', 'slug']));
-                $view->with('fp', Post::where('published', 1)->latest()->limit(2)->get(['title', 'slug']));
+                return $q();
             } catch (\Throwable $e) {
-                $view->with('fs', collect())->with('fp', collect());
+                return collect();
             }
+        };
+        $ord = fn($q) => $q->orderBy('sort')->orderBy('id');
+
+        View::composer('layouts.app', function ($view) use ($safe) {
+            $view->with('fs', $safe(fn() => Entry::of('services')->newQuery()->orderBy('sort')->limit(6)->get(['title', 'slug'])));
+            $view->with('fp', $safe(fn() => Post::where('published', 1)->latest()->limit(2)->get(['title', 'slug'])));
+        });
+
+        View::composer(['home', 'pages.about'], function ($view) use ($safe, $ord) {
+            $view->with('reviews', $safe(fn() => $ord(Entry::of('testimonials')->newQuery()->where('visible', 1))->get()));
+        });
+
+        View::composer('pages.service', function ($view) use ($safe, $ord) {
+            $slug = $view->getData()['sv']->slug ?? '';
+            $view->with('faqs', $safe(fn() => $ord(Entry::of('faqs')->newQuery()->where('service', $slug))->get()));
+        });
+
+        View::composer('pages.services', function ($view) use ($safe, $ord) {
+            $view->with('faqs', $safe(fn() => $ord(Entry::of('faqs')->newQuery()->where(fn($q) => $q->whereNull('service')->orWhere('service', '')))->get()));
         });
     }
 }

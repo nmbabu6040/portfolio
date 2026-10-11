@@ -97,3 +97,39 @@
         }),
     );
 })();
+
+// cookie consent: Google Analytics loads only after "Accept"
+(function () {
+    var id = window.GA_ID,
+        box = document.getElementById("cc");
+    if (!id || !box) return;
+    var v = null;
+    try {
+        v = localStorage.getItem("cc");
+    } catch (e) {}
+    function load() {
+        if (window.gaLoaded) return;
+        window.gaLoaded = 1;
+        var s = document.createElement("script");
+        s.async = 1;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=" + id;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () {
+            dataLayer.push(arguments);
+        };
+        gtag("js", new Date());
+        gtag("config", id);
+    }
+    if (v === "yes") load();
+    else if (v === null) box.classList.remove("d-none");
+    box.querySelectorAll("[data-cc]").forEach(function (b) {
+        b.onclick = function () {
+            try {
+                localStorage.setItem("cc", b.dataset.cc);
+            } catch (e) {}
+            box.classList.add("d-none");
+            if (b.dataset.cc === "yes") load();
+        };
+    });
+})();

@@ -1,7 +1,8 @@
 @extends('layouts.app')
 @php $name = $s['name'] ?? $p['name']; @endphp
 @section('title', 'Services | ' . $name)
-@section('desc', 'Web design and development, digital marketing, SEO, social media marketing, graphics design and data
+@section('desc',
+    'Web design and development, digital marketing, SEO, social media marketing, graphics design and data
     entry services.')
 @section('content')
     @include('sections.pagehead', [
@@ -34,4 +35,9 @@
             </div>
         </div>
     </section>
+    @if (isset($faqs) && $faqs->count())
+        <section class="sec">
+            <div class="container" style="max-width:860px">@include('sections.faq')</div>
+        </section>
+    @endif
 @endsection

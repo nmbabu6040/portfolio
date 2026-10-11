@@ -22,6 +22,13 @@
                         <a class="info" href="tel:{{ preg_replace('/[^\d+]/', '', $s['phone']) }}"><i
                                 class="bi bi-telephone"></i><span>{{ $s['phone'] }}</span></a>
                     @endif
+                    @if (!empty($s['whatsapp']))
+                        <a class="info" href="https://wa.me/{{ preg_replace('/\D/', '', $s['whatsapp']) }}"
+                            target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i><span>WhatsApp:
+                                {{ $s['whatsapp'] }}</span></a>
+                    @endif
+                    <a class="info" href="{{ url('/quote') }}"><i class="bi bi-receipt"></i><span>Need a price? Request a
+                            quote</span></a>
                     <div class="d-flex gap-2 mt-3">
                         @foreach (['linkedin', 'github', 'facebook'] as $k)
                             @if (!empty($s[$k]))

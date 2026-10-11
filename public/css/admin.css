@@ -359,3 +359,113 @@ body.adm {
     max-width: 420px;
     padding: 32px;
 }
+.sb-logo.has-img {
+    background: #f1f1f1;
+    padding: 4px;
+    overflow: hidden;
+}
+.fgrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+}
+.fgrid > div:has(textarea),
+.fgrid > div:has(input[type="file"]) {
+    grid-column: 1/-1;
+}
+@media (max-width: 767px) {
+    .fgrid {
+        grid-template-columns: 1fr;
+    }
+}
+.savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin: 24px -24px -24px;
+    padding: 14px 24px;
+    background: rgba(244, 246, 251, 0.92);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+}
+@media (max-width: 575px) {
+    .savebar {
+        margin: 24px -14px -16px;
+        padding: 12px 14px;
+    }
+}
+
+@media (min-width: 992px) {
+    .offcanvas.sb {
+        position: sticky !important;
+        top: 0;
+        align-self: flex-start;
+        height: 100vh !important;
+        width: 272px !important;
+        flex: 0 0 272px !important;
+        overflow: hidden;
+    }
+}
+.sb-in {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding: 18px 14px 14px;
+}
+.sb nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0 -6px;
+    padding: 0 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #2a3763 transparent;
+}
+.sb nav::-webkit-scrollbar {
+    width: 6px;
+}
+.sb nav::-webkit-scrollbar-thumb {
+    background: #2a3763;
+    border-radius: 6px;
+}
+.sb-foot {
+    margin-top: 0;
+    flex-shrink: 0;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sb-group {
+    margin: 14px 12px 4px;
+}
+.sb-link {
+    padding: 8px 14px;
+}
+.sb-user {
+    padding: 10px;
+    margin-bottom: 8px;
+}
+aside.sb {
+    --bs-offcanvas-width: 272px;
+    --bs-offcanvas-bg: #0b1020;
+    --bs-offcanvas-color: #cbd5f0;
+    color: #cbd5f0;
+}
+@media (min-width: 992px) {
+    aside.sb {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 272px !important;
+        height: 100vh !important;
+        z-index: 40;
+        visibility: visible !important;
+        transform: none !important;
+        border: 0 !important;
+        overflow: hidden;
+        background: linear-gradient(180deg, #0b1020, #111a38) !important;
+    }
+    .adm-main {
+        margin-left: 272px;
+    }
+}

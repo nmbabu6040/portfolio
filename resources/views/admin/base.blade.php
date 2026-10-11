@@ -14,6 +14,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
+    <link rel="icon" href="{{ asset(\App\Models\Setting::map()['favicon'] ?? 'favicon.ico') }}">
     <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
 </head>
 
@@ -22,6 +24,7 @@
         @php
             $unread = \App\Models\Entry::of('messages')->newQuery()->where('is_read', 0)->count();
             $user = auth()->user();
+            $logo = \App\Models\Setting::map()['logo'] ?? null;
             $ic = [
                 'projects' => 'bi-kanban',
                 'posts' => 'bi-journal-text',
@@ -35,9 +38,11 @@
                 'workflows' => 'bi-diagram-3',
                 'stats' => 'bi-bar-chart',
                 'reasons' => 'bi-check2-circle',
+                'faqs' => 'bi-question-circle',
+                'testimonials' => 'bi-chat-quote',
             ];
             $groups = [
-                'Content' => ['projects', 'posts', 'services'],
+                'Content' => ['projects', 'posts', 'services', 'faqs', 'testimonials'],
                 'Career' => ['experiences', 'educations', 'certifications', 'achievements'],
                 'Site data' => ['technologies', 'skills', 'workflows', 'stats', 'reasons'],
             ];
@@ -48,9 +53,16 @@
             <aside class="offcanvas-lg offcanvas-start sb" tabindex="-1" id="side">
                 <div class="sb-in">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <a class="sb-brand" href="/admin"><span class="sb-logo"><i
-                                    class="bi bi-speedometer2"></i></span><span><b>Admin Panel</b><small>Portfolio
-                                    CMS</small></span></a>
+                        <a class="sb-brand" href="/admin">
+                            <span class="sb-logo {{ $logo ? 'has-img' : '' }}">
+                                @if ($logo)
+                                    <img src="{{ asset($logo) }}" alt=""
+                                    style="width:100%;height:100%;object-fit:contain">@else<i
+                                        class="bi bi-speedometer2"></i>
+                                @endif
+                            </span>
+                            <span><b>Admin Panel</b><small>Portfolio CMS</small></span>
+                        </a>
                         <button class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
                             data-bs-target="#side" aria-label="Close"></button>
                     </div>
@@ -77,6 +89,9 @@
                         <div class="sb-group">Account</div>
                         <a class="sb-link {{ $on('/admin/password') ? 'on' : '' }}" href="/admin/password"><i
                                 class="bi bi-shield-lock"></i>Password</a>
+
+                        <a class="sb-link {{ $on('/admin/backup') ? 'on' : '' }}" href="/admin/backup"><i
+                                class="bi bi-cloud-download"></i>Backup</a>
                     </nav>
                     <div class="sb-foot">
                         <div class="sb-user"><span class="avatar">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>

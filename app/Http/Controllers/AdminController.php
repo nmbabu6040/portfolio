@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{Entry, Setting};
 use App\Support\{Html, Img, MailConfig};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Crypt, Hash, Mail};
+use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema};
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -18,19 +18,26 @@ class AdminController extends Controller
             'about' => ['textarea', 'nullable'],
             'email' => ['input', 'nullable|email'],
             'phone' => ['input', 'nullable|max:40'],
+            'whatsapp' => ['input', 'nullable|regex:/^\+?[0-9 ()-]{8,20}$/'],
             'linkedin' => ['input', 'nullable|url'],
             'github' => ['input', 'nullable|url'],
             'facebook' => ['input', 'nullable|url'],
             'photo' => ['file', 'nullable|image|mimes:jpg,jpeg,png,webp,gif,svg,bmp,ico|max:8192'],
-            'logo' => ['file', 'nullable|image|mimes:jpg,jpeg,png,webp,gif,svg,bmp,ico|max:8192'],
-            'favicon' => ['file', 'nullable|image|mimes:jpg,jpeg,png,webp,gif,svg,bmp,ico|max:8192'],
+            'logo' => ['file', 'nullable|mimes:png,jpg,jpeg,webp|max:2048'],
+            'favicon' => ['file', 'nullable|mimes:png,ico,jpg,jpeg,webp|max:2048'],
             'cv' => ['file', 'nullable|mimes:pdf,doc,docx|max:5120']
         ],
         'SEO' => [
             'seo_title' => ['input', 'nullable|max:120'],
             'seo_description' => ['textarea', 'nullable|max:170']
         ],
-        'Analytics' => ['ga_id' => ['input', 'nullable|regex:/^G-[A-Z0-9]+$/'], 'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']],
+        'Analytics' => [
+            'ga_id' => ['input', 'nullable|regex:/^G-[A-Z0-9]+$/'],
+            'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']
+        ],
+
+        'Legal' => ['privacy_policy' => ['rich', 'nullable']],
+
         'Email (SMTP)' => [
             'mail_host' => ['input', 'nullable|max:150'],
             'mail_port' => ['input', 'nullable|integer'],
@@ -173,5 +180,40 @@ class AdminController extends Controller
     {
         $this->q($t)->findOrFail($id)->delete();
         return back()->with('ok', 'Deleted.');
+    }
+
+    public function backupForm()
+    {
+        return view('admin.backup', ['last' => Setting::map()['last_backup'] ?? null]);
+    }
+    public function backupDownload()
+    {
+        abort_unless(class_exists(\ZipArchive::class), 500, 'The PHP zip extension is not enabled.');
+        $pdo = DB::connection()->getPdo();
+        $tables = array_merge(['users', 'settings', 'messages'], array_keys(config('admin')));
+        $sql = '-- Portfolio backup ' . now()->toDateTimeString() . "\nSET FOREIGN_KEY_CHECKS=0;\n";
+        foreach ($tables as $name) {
+            if (!Schema::hasTable($name)) continue;
+            foreach (DB::table($name)->get() as $row) {
+                $row = (array) $row;
+                $cols = implode(',', array_map(fn($c) => "`$c`", array_keys($row)));
+                $vals = implode(',', array_map(fn($v) => $v === null ? 'NULL' : $pdo->quote((string) $v), $row));
+                $sql .= "INSERT INTO `$name` ($cols) VALUES ($vals);\n";
+            }
+        }
+        $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+        $tmp = tempnam(sys_get_temp_dir(), 'bk');
+        $zip = new \ZipArchive;
+        $zip->open($tmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip->addFromString('database.sql', $sql);
+        $dir = storage_path('app/public');
+        if (is_dir($dir)) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)) as $f) {
+                if ($f->isFile()) $zip->addFile($f->getPathname(), 'uploads/' . ltrim(str_replace('\\', '/', substr($f->getPathname(), strlen($dir))), '/'));
+            }
+        }
+        $zip->close();
+        Setting::updateOrCreate(['name' => 'last_backup'], ['value' => now()->format('d M Y, H:i')]);
+        return response()->download($tmp, 'portfolio-backup-' . now()->format('Y-m-d-His') . '.zip')->deleteFileAfterSend(true);
     }
 }
