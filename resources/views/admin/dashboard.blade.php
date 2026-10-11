@@ -52,6 +52,8 @@
         @endforeach
     </div>
 
+    @include('admin.traffic')
+
     <div class="row g-4">
         <div class="col-xl-8">
             <div class="acard mb-4">

@@ -469,3 +469,49 @@ aside.sb {
         margin-left: 272px;
     }
 }
+
+.vcard {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #f8f9ff;
+}
+.vnum {
+    font-size: 1.6rem;
+    font-weight: 800;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    line-height: 1.1;
+}
+.vnum2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #4f46e5;
+}
+.vchart {
+    display: flex;
+    gap: 6px;
+    height: 160px;
+}
+.vbar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.vbar-a {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
+.vbar-v {
+    width: 100%;
+    min-height: 3px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, #4f46e5, #06b6d4);
+}
+.vbar small {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.68rem;
+    margin-top: 4px;
+}

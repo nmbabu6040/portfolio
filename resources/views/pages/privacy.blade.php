@@ -32,6 +32,11 @@
                             pages are viewed. This data is collected in aggregate by Google. If you decline, Google
                             Analytics is not loaded.</p>
                     @endif
+                    <h2>Visitor statistics</h2>
+                    <p>This site counts page views in a simple way to understand which pages are visited. I store the page
+                        address, the date, the device type (desktop, tablet or mobile), the referring website and a short
+                        anonymous code that changes every day. I do not store IP addresses, and no cookies are used for this
+                        counting.</p>
                     <h2>Third-party services</h2>
                     <p>This site loads fonts from Google Fonts and code, icons and logos from public content delivery
                         networks such as jsDelivr. These providers may receive your IP address and browser information when

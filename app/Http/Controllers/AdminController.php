@@ -118,13 +118,49 @@ class AdminController extends Controller
     public function dashboard()
     {
         $c = fn($t) => $this->q($t);
+        try {
+            $traffic = $this->traffic();
+        } catch (\Throwable $e) {
+            $traffic = null;
+        }
         return view('admin.dashboard', [
             's' => Setting::map(),
             'counts' => collect(config('admin'))->map(fn($R, $k) => $c($k)->count()),
             'n' => ['unread' => $c('messages')->where('is_read', 0)->count(), 'messages' => $c('messages')->count(), 'drafts' => $c('posts')->where('published', 0)->count()],
             'msgs' => $c('messages')->latest()->limit(5)->get(),
-            'recent' => $c('posts')->latest()->limit(5)->get()
+            'recent' => $c('posts')->latest()->limit(5)->get(),
+            'traffic' => $traffic
         ]);
+    }
+    private function traffic(): array
+    {
+        $pv = fn() => DB::table('page_views');
+        $since = fn(int $d) => now()->subDays($d - 1)->toDateString();
+        $uniq = fn(string $from) => DB::query()->fromSub(DB::table('page_views')->select('day', 'visitor')->where('day', '>=', $from)->groupBy('day', 'visitor'), 'x')->count();
+        $cards = [];
+        foreach ([['Today', 1], ['Last 7 days', 7], ['Last 30 days', 30]] as [$label, $d]) {
+            $f = $since($d);
+            $cards[] = ['label' => $label, 'views' => $pv()->where('day', '>=', $f)->count(), 'visitors' => $uniq($f)];
+        }
+        $f14 = $since(14);
+        $views = $pv()->where('day', '>=', $f14)->selectRaw('day, count(*) as c')->groupBy('day')->pluck('c', 'day');
+        $vis = $pv()->where('day', '>=', $f14)->selectRaw('day, count(distinct visitor) as c')->groupBy('day')->pluck('c', 'day');
+        $series = [];
+        for ($i = 13; $i >= 0; $i--) {
+            $d = now()->subDays($i);
+            $k = $d->toDateString();
+            $series[] = ['label' => $d->format('d M'), 'short' => $d->format('j'), 'views' => (int) ($views[$k] ?? 0), 'visitors' => (int) ($vis[$k] ?? 0)];
+        }
+        $f30 = $since(30);
+        return [
+            'cards' => $cards,
+            'series' => $series,
+            'total30' => $cards[2]['views'],
+            'pages' => $pv()->where('day', '>=', $f30)->selectRaw('path, count(*) as views, count(distinct visitor) as visitors')->groupBy('path')->orderByDesc('views')->limit(8)->get(),
+            'refs' => $pv()->where('day', '>=', $f30)->whereNotNull('referrer')->selectRaw('referrer, count(*) as views')->groupBy('referrer')->orderByDesc('views')->limit(6)->get(),
+            'direct' => $pv()->where('day', '>=', $f30)->whereNull('referrer')->count(),
+            'devices' => $pv()->where('day', '>=', $f30)->selectRaw('device, count(*) as views')->groupBy('device')->orderByDesc('views')->get(),
+        ];
     }
     public function settings()
     {

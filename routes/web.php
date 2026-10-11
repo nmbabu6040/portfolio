@@ -1,28 +1,34 @@
 <?php
 
 use App\Http\Controllers\{SiteController, AdminController};
+use App\Http\Middleware\TrackVisit;
 use Illuminate\Support\Facades\Route;
 
 Route::pattern('t', implode('|', array_merge(array_keys(config('admin')), ['messages'])));
-Route::get('/', [SiteController::class, 'home']);
-Route::get('/about', [SiteController::class, 'about']);
-Route::get('/experience', [SiteController::class, 'experience']);
-Route::get('/technology', [SiteController::class, 'technology']);
-Route::get('/projects', [SiteController::class, 'projects']);
-Route::get('/projects/{id}', [SiteController::class, 'project'])->whereNumber('id');
-Route::get('/services', [SiteController::class, 'services']);
-Route::get('/services/{slug}', [SiteController::class, 'service']);
-Route::get('/contact', [SiteController::class, 'contactPage']);
-Route::get('/privacy', [SiteController::class, 'privacy']);
-Route::get('/affiliate-disclosure', [SiteController::class, 'affiliate']);
+
+Route::middleware(TrackVisit::class)->group(function () {
+    Route::get('/', [SiteController::class, 'home']);
+    Route::get('/about', [SiteController::class, 'about']);
+    Route::get('/experience', [SiteController::class, 'experience']);
+    Route::get('/technology', [SiteController::class, 'technology']);
+    Route::get('/projects', [SiteController::class, 'projects']);
+    Route::get('/projects/{id}', [SiteController::class, 'project'])->whereNumber('id');
+    Route::get('/services', [SiteController::class, 'services']);
+    Route::get('/services/{slug}', [SiteController::class, 'service']);
+    Route::get('/contact', [SiteController::class, 'contactPage']);
+    Route::get('/quote', [SiteController::class, 'quotePage']);
+    Route::get('/privacy', [SiteController::class, 'privacy']);
+    Route::get('/affiliate-disclosure', [SiteController::class, 'affiliate']);
+    Route::get('/blog', [SiteController::class, 'blog']);
+    Route::get('/blog/category/{slug}', [SiteController::class, 'category']);
+    Route::get('/blog/{slug}', [SiteController::class, 'post']);
+});
+
 Route::post('/contact', [SiteController::class, 'contact'])->middleware('throttle:5,1');
-Route::get('/quote', [SiteController::class, 'quotePage']);
 Route::post('/quote', [SiteController::class, 'quote'])->middleware('throttle:5,1');
-Route::get('/blog', [SiteController::class, 'blog']);
-Route::get('/blog/category/{slug}', [SiteController::class, 'category']);
-Route::get('/blog/{slug}', [SiteController::class, 'post']);
 Route::get('/sitemap.xml', [SiteController::class, 'sitemap']);
 Route::get('/robots.txt', fn() => response("User-agent: *\nDisallow: /admin\nSitemap: " . url('/sitemap.xml') . "\n")->header('Content-Type', 'text/plain'));
+
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('login');
 Route::post('/admin/login', [AdminController::class, 'login'])->middleware('throttle:5,1');
 Route::middleware('auth')->prefix('admin')->group(function () {
