@@ -535,3 +535,19 @@ aside.sb {
     opacity: 0.4;
     background: #eef0ff;
 }
+
+.mgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+}
+.mcard {
+    overflow: hidden;
+}
+.mthumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: #eef0ff;
+}

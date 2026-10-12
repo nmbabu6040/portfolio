@@ -167,28 +167,3 @@ if (navigator.share)
                 .catch(function () {});
         };
     });
-
-// newsletter box: hide floating buttons while it is on screen, and never let focus jump the page
-(function () {
-    var nl = document.getElementById("nl");
-    if (!nl) return;
-    if ("IntersectionObserver" in window) {
-        new IntersectionObserver(
-            function (e) {
-                document.body.classList.toggle("nl-view", e[0].isIntersecting);
-            },
-            { threshold: 0 },
-        ).observe(nl);
-    }
-    var y = 0;
-    nl.addEventListener("pointerdown", function () {
-        y = window.scrollY;
-    });
-    nl.addEventListener("focusin", function () {
-        var keep = y || window.scrollY;
-        setTimeout(function () {
-            if (window.scrollY < keep - 150)
-                window.scrollTo({ top: keep, behavior: "instant" });
-        }, 60);
-    });
-})();

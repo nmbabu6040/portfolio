@@ -45,6 +45,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('backup', [AdminController::class, 'backupForm']);
     Route::post('backup/download', [AdminController::class, 'backupDownload']);
     Route::post('upload', [AdminController::class, 'upload']);
+    Route::get('media', [AdminController::class, 'media']);
+    Route::post('media', [AdminController::class, 'mediaUpload']);
+    Route::post('media/cleanup', [AdminController::class, 'mediaCleanup']);
+    Route::delete('media/{name}', [AdminController::class, 'mediaDelete'])->where('name', '[A-Za-z0-9._-]+');
     Route::get('messages', [AdminController::class, 'messages']);
     Route::post('messages/{id}/read', [AdminController::class, 'read']);
     Route::get('subscribers', [AdminController::class, 'subscribers']);

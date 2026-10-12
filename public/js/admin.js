@@ -98,3 +98,27 @@ document.querySelectorAll("[data-sortable]").forEach(function (el) {
         },
     });
 });
+
+// media library: copy image URL
+document.querySelectorAll("[data-copyurl]").forEach(function (b) {
+    b.addEventListener("click", function () {
+        var t = b.dataset.copyurl,
+            old = b.innerHTML;
+        var done = function () {
+            b.textContent = "Copied!";
+            setTimeout(function () {
+                b.innerHTML = old;
+            }, 1600);
+        };
+        if (navigator.clipboard) navigator.clipboard.writeText(t).then(done);
+        else {
+            var x = document.createElement("textarea");
+            x.value = t;
+            document.body.appendChild(x);
+            x.select();
+            document.execCommand("copy");
+            x.remove();
+            done();
+        }
+    });
+});

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{Entry, Setting};
 use App\Support\{Html, Img, MailConfig};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema};
+use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema, Storage};
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -298,5 +298,78 @@ class AdminController extends Controller
     {
         $this->q('subscribers')->findOrFail($id)->delete();
         return back()->with('ok', 'Subscriber deleted.');
+    }
+
+    public function media()
+    {
+        $items = $this->mediaItems();
+        return view('admin.media', ['items' => $items]);
+    }
+    public function mediaUpload(Request $r)
+    {
+        $r->validate(['images' => 'required|array|max:20', 'images.*' => 'image|max:8192']);
+        foreach ($r->file('images') as $f) Img::store($f, 1600);
+        return back()->with('ok', count($r->file('images')) . ' image(s) uploaded.');
+    }
+    public function mediaDelete(string $name)
+    {
+        abort_unless(preg_match('/^[A-Za-z0-9]{8,64}\.(webp|jpe?g|png|gif|ico)$/i', $name), 404);
+        $this->mediaRemove($name);
+        return back()->with('ok', 'Image deleted.');
+    }
+    public function mediaCleanup()
+    {
+        $n = 0;
+        $limit = now()->subDay()->timestamp;
+        foreach ($this->mediaItems() as $m) {
+            if (!$m['used'] && $m['time'] < $limit) {
+                $this->mediaRemove($m['name']);
+                $n++;
+            }
+        }
+        return back()->with('ok', "$n unused image(s) deleted.");
+    }
+    private function mediaRemove(string $name): void
+    {
+        $disk = Storage::disk('public');
+        $disk->delete('uploads/' . $name);
+        if (str_ends_with(strtolower($name), '.webp')) $disk->delete('uploads/' . pathinfo($name, PATHINFO_FILENAME) . '.jpg');
+    }
+    private function mediaHay(): array
+    {
+        $h = [];
+        $add = function (string $label, string $t, array $cols) use (&$h) {
+            if (!Schema::hasTable($t)) return;
+            $s = '';
+            foreach (DB::table($t)->get($cols) as $row) foreach ($cols as $c) $s .= ' ' . ($row->$c ?? '');
+            $h[$label] = ($h[$label] ?? '') . $s;
+        };
+        $add('Profile & Settings', 'settings', ['value']);
+        $add('Projects', 'projects', ['image', 'details']);
+        $add('Blog posts', 'posts', ['image', 'body']);
+        $add('Services', 'services', ['details']);
+        $add('Testimonials', 'testimonials', ['photo']);
+        return $h;
+    }
+    private function mediaItems(): array
+    {
+        $disk = Storage::disk('public');
+        $files = collect($disk->files('uploads'))->filter(fn($f) => preg_match('/\.(webp|jpe?g|png|gif|ico)$/i', $f));
+        $webp = $files->filter(fn($f) => str_ends_with(strtolower($f), '.webp'))->map(fn($f) => pathinfo($f, PATHINFO_FILENAME))->all();
+        $hay = $this->mediaHay();
+        $items = [];
+        foreach ($files as $f) {
+            $base = pathinfo($f, PATHINFO_FILENAME);
+            if (preg_match('/\.jpe?g$/i', $f) && in_array($base, $webp)) continue;
+            $items[] = [
+                'name' => basename($f),
+                'url' => '/storage/' . $f,
+                'size' => $disk->size($f),
+                'time' => $disk->lastModified($f),
+                'used' => array_keys(array_filter($hay, fn($s) => str_contains($s, $base))),
+            ];
+        }
+        usort($items, fn($a, $b) => $b['time'] <=> $a['time']);
+        return $items;
     }
 }

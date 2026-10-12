@@ -46,7 +46,7 @@
                             <img src="{{ asset($s['photo']) }}" width="380" height="380"
                             alt="Portrait of {{ $name }}">@else<div class="frame-ph">{{ $ini }}</div>
                         @endif
-                        <div class="float-chip"><i class="bi bi-trophy"></i> 17+ years in Sales &amp; Marketing</div>
+                        <div class="float-chip"><i class="bi bi-trophy"></i> 18+ years in Sales &amp; Marketing</div>
                     </div>
                 </div>
             </div>

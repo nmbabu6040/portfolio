@@ -928,14 +928,3 @@ a.pill {
     clip: rect(0 0 0 0);
     opacity: 0;
 }
-body:has(#nl:focus-within) .wa,
-body:has(#nl:focus-within) #top {
-    display: none !important;
-}
-
-body.nl-view .wa,
-body.nl-view #top {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transform: scale(0.8);
-}

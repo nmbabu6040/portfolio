@@ -235,7 +235,7 @@
         class="bi bi-arrow-up"></i></button>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/site.js') }}"></script>
-{{-- <script src="{{ asset('js/dbg.js') }}"></script> --}}
+
 </body>
 
 </html>

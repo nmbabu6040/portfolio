@@ -73,6 +73,8 @@
                                 class="bi bi-grid-1x2"></i>Dashboard</a>
                         <a class="sb-link {{ $on('/admin/settings') ? 'on' : '' }}" href="/admin/settings"><i
                                 class="bi bi-person-gear"></i>Profile &amp; Settings</a>
+                        <a class="sb-link {{ $on('/admin/media') ? 'on' : '' }}" href="/admin/media"><i
+                                class="bi bi-images"></i>Media library</a>
                         @foreach ($groups as $g => $keys)
                             <div class="sb-group">{{ $g }}</div>
                             @foreach ($keys as $k)
