@@ -890,3 +890,52 @@ a.pill {
     text-decoration: none;
     display: inline-block;
 }
+
+.mt-bar {
+    background: #dc2626;
+    color: #fff;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    position: relative;
+    z-index: 1100;
+}
+.bsearch {
+    width: 100%;
+    max-width: 320px;
+}
+
+.foot .nl .form-control {
+    background: #fff;
+    color: #0f172a;
+    border-color: #fff;
+}
+.foot .nl .btn {
+    white-space: nowrap;
+}
+.nl-ok {
+    color: #6ee7b7;
+}
+.nl {
+    position: relative;
+}
+.hp {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    opacity: 0;
+}
+body:has(#nl:focus-within) .wa,
+body:has(#nl:focus-within) #top {
+    display: none !important;
+}
+
+body.nl-view .wa,
+body.nl-view #top {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.8);
+}

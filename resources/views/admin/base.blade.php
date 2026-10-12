@@ -87,6 +87,8 @@
                                 <span class="badge text-bg-danger">{{ $unread }}</span>
                             @endif
                         </a>
+                        <a class="sb-link {{ $on('/admin/subscribers') ? 'on' : '' }}" href="/admin/subscribers"><i
+                                class="bi bi-people"></i>Subscribers</a>
                         <div class="sb-group">Account</div>
                         <a class="sb-link {{ $on('/admin/password') ? 'on' : '' }}" href="/admin/password"><i
                                 class="bi bi-shield-lock"></i>Password</a>
@@ -157,6 +159,7 @@
     @endauth
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="{{ asset('js/admin.js') }}"></script>
 </body>
 

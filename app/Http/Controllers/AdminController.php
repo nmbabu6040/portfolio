@@ -44,6 +44,11 @@ class AdminController extends Controller
             'affiliate_domains' => ['textarea', 'nullable|max:1000']
         ],
 
+        'Maintenance' => [
+            'maintenance' => ['check', 'nullable'],
+            'maintenance_message' => ['textarea', 'nullable|max:300']
+        ],
+
         'Email (SMTP)' => [
             'mail_host' => ['input', 'nullable|max:150'],
             'mail_port' => ['input', 'nullable|integer'],
@@ -210,6 +215,9 @@ class AdminController extends Controller
         $R = $this->R($t);
         $d = $this->prep($r, $R['f']);
         if (array_key_exists('sort', $R['f'])) $d['sort'] = (int) ($d['sort'] ?? 0);
+        if (!$id && array_key_exists('sort', $R['f']) && $d['sort'] === 0) {
+            $d['sort'] = $t === 'projects' ? ((int) $this->q($t)->min('sort') - 1) : ((int) $this->q($t)->max('sort') + 1);
+        }
         if (array_key_exists('slug', $R['f'])) {
             $s = Str::slug(($d['slug'] ?? '') ?: $d['title']);
             while ($this->q($t)->where('slug', $s)->where('id', '!=', $id ?? 0)->exists()) $s .= '-' . rand(10, 99);
@@ -257,5 +265,38 @@ class AdminController extends Controller
         $zip->close();
         Setting::updateOrCreate(['name' => 'last_backup'], ['value' => now()->format('d M Y, H:i')]);
         return response()->download($tmp, 'portfolio-backup-' . now()->format('Y-m-d-His') . '.zip')->deleteFileAfterSend(true);
+    }
+
+    public function reorder(Request $r, $t)
+    {
+        $R = $this->R($t);
+        abort_unless(array_key_exists('sort', $R['f']), 404);
+        foreach (array_map('intval', (array) $r->input('ids', [])) as $i => $id) {
+            $this->q($t)->where('id', $id)->update(['sort' => $i]);
+        }
+        return response()->json(['ok' => true]);
+    }
+
+    public function subscribers()
+    {
+        $items = $this->q('subscribers')->latest()->get();
+        return view('admin.subscribers', ['items' => $items, 'active' => $items->where('status', 'active')->count()]);
+    }
+    public function subscribersExport()
+    {
+        $safe = fn($v) => preg_match('/^[=+\-@\t\r]/', (string) $v) ? "'" . $v : $v;
+        return response()->streamDownload(function () use ($safe) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['email', 'status', 'subscribed_at', 'unsubscribe_url']);
+            foreach ($this->q('subscribers')->orderBy('id')->get() as $r) {
+                fputcsv($out, [$safe($r->email), $r->status, $r->created_at, url('/unsubscribe/' . $r->token)]);
+            }
+            fclose($out);
+        }, 'subscribers-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+    public function subscriberDelete($id)
+    {
+        $this->q('subscribers')->findOrFail($id)->delete();
+        return back()->with('ok', 'Subscriber deleted.');
     }
 }

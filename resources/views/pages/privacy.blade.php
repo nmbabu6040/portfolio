@@ -32,6 +32,11 @@
                             pages are viewed. This data is collected in aggregate by Google. If you decline, Google
                             Analytics is not loaded.</p>
                     @endif
+
+                    <h2>Email updates</h2>
+                    <p>If you subscribe to email updates, I store your email address and the date you subscribed. I use it
+                        only to send you updates from this website, and every email includes a link to unsubscribe. You can
+                        also ask me to delete your email address at any time.</p>
                     <h2>Visitor statistics</h2>
                     <p>This site counts page views in a simple way to understand which pages are visited. I store the page
                         address, the date, the device type (desktop, tablet or mobile), the referring website and a short

@@ -56,3 +56,45 @@ document.querySelectorAll("[data-rich]").forEach(function (el) {
                 : q.root.innerHTML;
     });
 });
+
+// drag-and-drop reorder
+document.querySelectorAll("[data-sortable]").forEach(function (el) {
+    var note = document.getElementById("sortnote");
+    Sortable.create(el, {
+        handle: ".drag",
+        animation: 150,
+        ghostClass: "drag-ghost",
+        onEnd: function () {
+            var ids = [].map.call(
+                el.querySelectorAll("[data-id]"),
+                function (r) {
+                    return r.dataset.id;
+                },
+            );
+            fetch(el.dataset.sortable, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN":
+                        document.querySelector("meta[name=csrf]").content,
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ ids: ids }),
+            })
+                .then(function (r) {
+                    if (!r.ok) throw 0;
+                    if (note) {
+                        note.textContent = "· Order saved";
+                        note.className = "small text-success";
+                    }
+                })
+                .catch(function () {
+                    if (note) {
+                        note.textContent =
+                            "· Could not save the order, please reload and try again";
+                        note.className = "small text-danger";
+                    }
+                });
+        },
+    });
+});

@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\{SiteController, AdminController};
-use App\Http\Middleware\TrackVisit;
+use App\Http\Middleware\{Maintenance, TrackVisit};
 use Illuminate\Support\Facades\Route;
 
 Route::pattern('t', implode('|', array_merge(array_keys(config('admin')), ['messages'])));
 
-Route::middleware(TrackVisit::class)->group(function () {
+Route::middleware([Maintenance::class, TrackVisit::class])->group(function () {
     Route::get('/', [SiteController::class, 'home']);
     Route::get('/about', [SiteController::class, 'about']);
     Route::get('/experience', [SiteController::class, 'experience']);
@@ -24,15 +24,19 @@ Route::middleware(TrackVisit::class)->group(function () {
     Route::get('/blog/{slug}', [SiteController::class, 'post']);
 });
 
-Route::post('/contact', [SiteController::class, 'contact'])->middleware('throttle:5,1');
-Route::post('/quote', [SiteController::class, 'quote'])->middleware('throttle:5,1');
+Route::post('/contact', [SiteController::class, 'contact'])->middleware([Maintenance::class, 'throttle:5,1']);
+Route::post('/quote', [SiteController::class, 'quote'])->middleware([Maintenance::class, 'throttle:5,1']);
+Route::post('/subscribe', [SiteController::class, 'subscribe'])->middleware([Maintenance::class, 'throttle:5,1']);
+Route::get('/unsubscribe/{token}', [SiteController::class, 'unsubscribePage']);
+Route::post('/unsubscribe/{token}', [SiteController::class, 'unsubscribe'])->middleware('throttle:10,1');
 Route::get('/sitemap.xml', [SiteController::class, 'sitemap']);
-Route::get('/robots.txt', fn() => response("User-agent: *\nDisallow: /admin\nSitemap: " . url('/sitemap.xml') . "\n")->header('Content-Type', 'text/plain'));
+Route::get('/robots.txt', fn() => response("User-agent: *\nDisallow: /admin\nDisallow: /unsubscribe\nSitemap: " . url('/sitemap.xml') . "\n")->header('Content-Type', 'text/plain'));
 
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('login');
 Route::post('/admin/login', [AdminController::class, 'login'])->middleware('throttle:5,1');
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard']);
+    Route::get('error-preview/{code}', fn($code) => response()->view("errors.$code", [], (int) $code))->whereIn('code', ['401', '403', '404', '405', '419', '429', '500', '503']);
     Route::get('settings', [AdminController::class, 'settings']);
     Route::post('settings', [AdminController::class, 'settingsSave']);
     Route::post('settings/test-mail', [AdminController::class, 'testMail']);
@@ -43,10 +47,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('upload', [AdminController::class, 'upload']);
     Route::get('messages', [AdminController::class, 'messages']);
     Route::post('messages/{id}/read', [AdminController::class, 'read']);
+    Route::get('subscribers', [AdminController::class, 'subscribers']);
+    Route::get('subscribers/export', [AdminController::class, 'subscribersExport']);
+    Route::delete('subscribers/{id}', [AdminController::class, 'subscriberDelete']);
     Route::post('logout', [AdminController::class, 'logout']);
     Route::get('{t}', [AdminController::class, 'index']);
     Route::get('{t}/create', [AdminController::class, 'form']);
     Route::get('{t}/{id}/edit', [AdminController::class, 'form']);
+    Route::post('{t}/reorder', [AdminController::class, 'reorder']);
     Route::post('{t}', [AdminController::class, 'save']);
     Route::post('{t}/{id}', [AdminController::class, 'save']);
     Route::delete('{t}/{id}', [AdminController::class, 'destroy']);

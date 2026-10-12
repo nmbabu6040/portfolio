@@ -7,6 +7,9 @@ use App\Support\MailConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 
 class SiteController extends Controller
 {
@@ -74,6 +77,31 @@ class SiteController extends Controller
     {
         return $this->v('pages.privacy');
     }
+
+    public function subscribe(Request $r)
+    {
+        $v = Validator::make($r->all(), ['email' => 'required|email|max:150', 'website' => 'max:0']);
+        if ($v->fails()) return redirect(url()->previous() . '#nl')->withErrors($v)->withInput();
+        $email = strtolower(trim((string) $r->input('email')));
+        $row = Entry::of('subscribers')->newQuery()->where('email', $email)->first();
+        if ($row) {
+            if ($row->status !== 'active') $row->update(['status' => 'active']);
+        } else {
+            Entry::of('subscribers')->newQuery()->create(['email' => $email, 'token' => Str::random(40), 'status' => 'active', 'source' => mb_substr((string) $r->headers->get('referer'), 0, 150)]);
+        }
+        return redirect(url()->previous() . '#nl')->with('subscribed', 'Thanks for subscribing!');
+    }
+    public function unsubscribePage(string $token)
+    {
+        $row = Entry::of('subscribers')->newQuery()->where('token', $token)->first();
+        return $this->v('pages.unsubscribe', ['row' => $row, 'done' => false]);
+    }
+    public function unsubscribe(string $token)
+    {
+        $row = Entry::of('subscribers')->newQuery()->where('token', $token)->first();
+        if ($row) $row->update(['status' => 'unsubscribed']);
+        return $this->v('pages.unsubscribe', ['row' => $row, 'done' => true]);
+    }
     public function affiliate()
     {
         return $this->v('pages.affiliate');
@@ -106,9 +134,14 @@ class SiteController extends Controller
         }
         return redirect('/quote')->with('sent', 'Thank you! I have received your request and will reply with details soon.');
     }
-    public function blog()
+    public function blog(Request $r)
     {
-        return view('blog.index', ['s' => Setting::map(), 'posts' => Post::where('published', 1)->latest()->paginate(9), 'cats' => $this->cats(), 'active' => null]);
+        $q = mb_substr(trim((string) $r->query('q', '')), 0, 80);
+        $like = '%' . addcslashes($q, '%_\\') . '%';
+        $posts = Post::where('published', 1)
+            ->when($q !== '', fn($x) => $x->where(fn($y) => $y->where('title', 'like', $like)->orWhere('excerpt', 'like', $like)->orWhere('body', 'like', $like)))
+            ->latest()->paginate(9)->withQueryString();
+        return view('blog.index', ['s' => Setting::map(), 'posts' => $posts, 'cats' => $this->cats(), 'active' => null, 'q' => $q]);
     }
     public function category(string $slug)
     {

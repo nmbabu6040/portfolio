@@ -1,15 +1,24 @@
 @extends('admin.base')
 @section('c')
+    @php
+        $canSort = array_key_exists('sort', $R['f']);
+    @endphp
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
             <h1 class="h4 mb-0">{{ $R['label'] }}</h1>
-            <p class="text-body-secondary small mb-0">{{ $items->count() }} item(s)</p>
+            <p class="text-body-secondary small mb-0">{{ $items->count() }} item(s)@if ($canSort && $items->count() > 1)
+                    · drag <i class="bi bi-grip-vertical"></i> to change the order <span id="sortnote" class="small"></span>
+                @endif
+            </p>
         </div>
         <a class="btn btn-primary" href="/admin/{{ $t }}/create"><i class="bi bi-plus-lg me-1"></i>Add new</a>
     </div>
-    <div class="acard">
+    <div class="acard" @if ($canSort) data-sortable="/admin/{{ $t }}/reorder" @endif>
         @forelse($items as $i)
-            <div class="row-item">
+            <div class="row-item" data-id="{{ $i->id }}">
+                @if ($canSort)
+                    <span class="drag" title="Drag to reorder"><i class="bi bi-grip-vertical"></i></span>
+                @endif
                 @if (!empty($i->image))
                 <img class="thumb" src="{{ asset($i->image) }}" alt="">@else<span class="thumb"><i
                             class="bi bi-file-earmark-text"></i></span>
