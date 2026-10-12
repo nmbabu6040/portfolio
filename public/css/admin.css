@@ -551,3 +551,7 @@ aside.sb {
     object-fit: cover;
     background: #eef0ff;
 }
+
+.min-w-0 {
+    min-width: 0;
+}
