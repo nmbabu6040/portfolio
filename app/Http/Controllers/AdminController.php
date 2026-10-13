@@ -78,6 +78,7 @@ class AdminController extends Controller
         foreach ($f as $n => $x) {
             if ($x[0] == 'file') {
                 if ($r->hasFile($n)) $d[$n] = str_contains($x[1], 'image') ? Img::store($r->file($n), ['photo' => 900, 'logo' => 600, 'favicon' => 256][$n] ?? 1600) : 'storage/' . $r->file($n)->store('uploads', 'public');
+                elseif (($pick = (string) $r->input($n . '_pick')) !== '' && preg_match('#^storage/uploads/[A-Za-z0-9]{8,64}\.webp$#', $pick) && is_file(public_path($pick))) $d[$n] = $pick;
                 else unset($d[$n]);
             } elseif ($x[0] == 'check') $d[$n] = $r->boolean($n);
             elseif ($x[0] == 'rich') $d[$n] = Html::clean((string) ($d[$n] ?? ''));
@@ -495,5 +496,18 @@ class AdminController extends Controller
         if (!Hash::check($r->password, $r->user()->password)) return back()->withErrors(['password' => 'Wrong password.']);
         $r->user()->forceFill(['two_factor_secret' => null, 'two_factor_enabled' => false, 'two_factor_recovery' => null, 'two_factor_last' => null])->save();
         return redirect('/admin/security')->with('ok', 'Two-factor login is now OFF.');
+    }
+
+    public function mediaPicker()
+    {
+        $disk = Storage::disk('public');
+        $out = [];
+        foreach ($disk->files('uploads') as $f) {
+            if (!preg_match('/^uploads\/([A-Za-z0-9]{8,64})\.webp$/', $f, $m)) continue;
+            $thumb = $disk->exists("uploads/{$m[1]}-240.webp") ? "uploads/{$m[1]}-240.webp" : $f;
+            $out[] = ['path' => 'storage/' . $f, 'thumb' => '/storage/' . $thumb, 'time' => $disk->lastModified($f)];
+        }
+        usort($out, fn($a, $b) => $b['time'] <=> $a['time']);
+        return response()->json($out);
     }
 }

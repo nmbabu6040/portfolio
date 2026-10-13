@@ -122,3 +122,59 @@ document.querySelectorAll("[data-copyurl]").forEach(function (b) {
         }
     });
 });
+
+// image picker: choose an image from the media library
+(function () {
+    var modalEl = document.getElementById("picker");
+    if (!modalEl) return;
+    var grid = document.getElementById("picker-grid"),
+        empty = document.getElementById("picker-empty"),
+        modal,
+        target,
+        cache = null;
+    function render(list) {
+        grid.innerHTML = "";
+        empty.classList.toggle("d-none", list.length > 0);
+        list.forEach(function (it) {
+            var b = document.createElement("button");
+            b.type = "button";
+            b.className = "pitem";
+            b.title = it.path;
+            var im = document.createElement("img");
+            im.src = it.thumb;
+            im.alt = "";
+            im.loading = "lazy";
+            b.appendChild(im);
+            b.onclick = function () {
+                target.querySelector("input[type=hidden]").value = it.path;
+                var pv = target.querySelector(".pick-prev");
+                pv.src = "/" + it.path;
+                pv.classList.remove("d-none");
+                target.querySelector(".pick-note").textContent =
+                    "Selected from library. Click Save to apply.";
+                var f = target.querySelector("input[type=file]");
+                if (f) f.value = "";
+                modal.hide();
+            };
+            grid.appendChild(b);
+        });
+    }
+    document.querySelectorAll("[data-pick]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            target = btn.closest("[data-pickfield]");
+            modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+            if (cache) return render(cache);
+            fetch("/admin/media/picker", {
+                headers: { Accept: "application/json" },
+            })
+                .then(function (r) {
+                    return r.json();
+                })
+                .then(function (l) {
+                    cache = l;
+                    render(l);
+                });
+        });
+    });
+})();

@@ -162,6 +162,27 @@
             <div class="w-100" style="max-width:420px">@yield('c')</div>
         </div>
     @endauth
+
+    @auth
+        <div class="modal fade" id="picker" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5">Choose an image</h2><button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="picker-grid" class="pgrid"></div>
+                        <p id="picker-empty" class="text-body-secondary d-none mb-0">No images in the library yet. Upload
+                            some in the Media library, or use the file box.</p>
+                    </div>
+                    <div class="modal-footer"><a class="btn btn-outline-secondary me-auto" href="/admin/media"
+                            target="_blank">Open Media library</a><button type="button" class="btn btn-light"
+                            data-bs-dismiss="modal">Cancel</button></div>
+                </div>
+            </div>
+        </div>
+    @endauth
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>

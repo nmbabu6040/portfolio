@@ -52,6 +52,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('backup/download', [AdminController::class, 'backupDownload']);
     Route::post('upload', [AdminController::class, 'upload']);
     Route::get('media', [AdminController::class, 'media']);
+    Route::get('media/picker', [AdminController::class, 'mediaPicker']);
     Route::post('media', [AdminController::class, 'mediaUpload']);
     Route::post('media/cleanup', [AdminController::class, 'mediaCleanup']);
     Route::delete('media/{name}', [AdminController::class, 'mediaDelete'])->where('name', '[A-Za-z0-9._-]+');

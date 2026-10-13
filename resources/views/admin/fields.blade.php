@@ -68,6 +68,22 @@
         @elseif($x[0] == 'number')
             <input type="number" name="{{ $n }}" value="{{ old($n, data_get($v, $n, 0)) }}"
                 class="form-control">
+        @elseif($x[0] == 'file' && str_contains($x[1], 'image'))
+            <div class="imgpick" data-pickfield>
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                    <img class="pick-prev {{ data_get($v, $n) ? '' : 'd-none' }}"
+                        src="{{ data_get($v, $n) ? asset(data_get($v, $n)) : '' }}" alt="">
+                    <div class="small text-body-secondary pick-note">
+                        {{ data_get($v, $n) ? 'Current: ' . data_get($v, $n) : 'No image yet' }}</div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <input type="file" name="{{ $n }}" class="form-control" style="max-width:340px"
+                        accept="image/*">
+                    <button type="button" class="btn btn-outline-secondary" data-pick><i
+                            class="bi bi-images me-1"></i>Choose from library</button>
+                </div>
+                <input type="hidden" name="{{ $n }}_pick" value="">
+            </div>
         @elseif($x[0] == 'file')
             <input type="file" name="{{ $n }}" class="form-control">
             @if (data_get($v, $n))
