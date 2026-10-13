@@ -11,17 +11,19 @@
                             <blockquote class="mb-3">{{ $r->quote }}</blockquote>
                             <figcaption class="mt-auto d-flex align-items-center gap-3">
                                 @if ($r->photo)
-                                    <img class="av" src="{{ asset($r->photo) }}" alt=""
-                                    loading="lazy">@else<span
-                                        class="av av-i">{{ strtoupper(mb_substr($r->name, 0, 1)) }}</span>
+                                    {!! \App\Support\Ui::pic($r->photo, '', '48px', 'av') !!}
+                                @else
+                                    <span class="av av-i">{{ strtoupper(mb_substr($r->name, 0, 1)) }}</span>
                                 @endif
-                                <div><strong>{{ $r->name }}</strong>
+                                <div>
+                                    <strong>{{ $r->name }}</strong>
                                     @if ($r->role)
                                         <div class="small text-body-secondary">{{ $r->role }}</div>
-                                        @endif @if ($r->url)
-                                            <a class="small" href="{{ $r->url }}" target="_blank"
-                                                rel="noopener noreferrer">View original</a>
-                                        @endif
+                                    @endif
+                                    @if ($r->url)
+                                        <a class="small" href="{{ $r->url }}" target="_blank"
+                                            rel="noopener noreferrer">View original</a>
+                                    @endif
                                 </div>
                             </figcaption>
                         </figure>

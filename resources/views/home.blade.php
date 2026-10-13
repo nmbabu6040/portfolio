@@ -25,12 +25,12 @@
                     <p class="hero-sub"><span class="visually-hidden">{{ $role }}</span><span class="gt"
                             id="rot" data-words="{{ $role }}"
                             aria-hidden="true">{{ trim(explode('|', $role)[0]) }}</span></p>
-                    <p class="hero-text">{{ $intro }}</p>
+                    <p class="hero-text">{{ Str::limit($intro, 200) }}</p>
                     <div class="d-flex flex-wrap gap-2 mt-4">
                         <a class="btn btn-primary btn-lg" href="{{ url('/projects') }}">View My Portfolio <i
                                 class="bi bi-arrow-right ms-1"></i></a>
-                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/about') }}">About Me</a><a
-                            class="btn btn-ghost-light btn-lg" href="{{ url('/contact') }}">Contact Me</a>
+                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/about') }}">About Me</a>
+                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/contact') }}">Contact Me</a>
                         @if (!empty($s['cv']))
                             <a class="btn btn-ghost-light btn-lg" href="{{ asset($s['cv']) }}" download><i
                                     class="bi bi-download me-1"></i>CV</a>
@@ -43,8 +43,11 @@
                 <div class="col-lg-5 order-1 order-lg-2 text-center">
                     <div class="frame">
                         @if (!empty($s['photo']))
-                            <img src="{{ asset($s['photo']) }}" width="380" height="380"
-                            alt="Portrait of {{ $name }}">@else<div class="frame-ph">{{ $ini }}</div>
+                            {{-- <img src="{{ asset($s['photo']) }}" width="380" height="380"
+                                alt="Portrait of {{ $name }}"> --}}
+                            {!! \App\Support\Ui::pic($s['photo'], 'Portrait of ' . $name, '(max-width:487px) 78vw, 380px', '', 'high') !!}
+                        @else
+                            <div class="frame-ph">{{ $ini }}</div>
                         @endif
                         <div class="float-chip"><i class="bi bi-trophy"></i> 18+ years in Sales &amp; Marketing</div>
                     </div>
@@ -59,7 +62,7 @@
                 @foreach ($tech->take(16) as $t)
                     <span class="marq-i">
                         @if (Ui::logo($t->name))
-                            <img src="{{ Ui::logo($t->name) }}" alt="" height="22" loading="lazy"
+                            <img src="{{ Ui::logo($t->name) }}" alt="" width="22" height="22" loading="lazy"
                                 onerror="this.remove()">
                         @endif{{ $t->name }}
                     </span>

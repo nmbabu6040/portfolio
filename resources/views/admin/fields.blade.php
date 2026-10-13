@@ -73,7 +73,8 @@
             @if (data_get($v, $n))
                 <small class="text-body-secondary">Current: {{ data_get($v, $n) }}</small>
             @endif
-        @else<input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
+        @else
+            <input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
         @endif
         @if (!empty($help[$n]))
             <div class="form-text">{{ $help[$n] }}</div>

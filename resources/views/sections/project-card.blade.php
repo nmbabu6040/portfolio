@@ -2,9 +2,16 @@
 <div class="col-md-6 col-lg-4" data-cat="{{ $pr->category }}">
     <div class="card proj h-100 rv" style="--d:{{ ($i % 3) * 0.08 }}s">
         @if ($pr->image)
-            <a class="proj-img" href="{{ url('/projects/' . $pr->id) }}"><img src="{{ asset($pr->image) }}" loading="lazy"
-                alt="{{ $pr->title }} screenshot"><span><i class="bi bi-arrow-up-right"></i></span></a>@else<a
-                class="proj-img ph" href="{{ url('/projects/' . $pr->id) }}">Screenshot</a>
+            <a class="proj-img" href="{{ url('/projects/' . $pr->id) }}">
+                {!! \App\Support\Ui::pic(
+                    $pr->image,
+                    $pr->title . ' screenshot',
+                    '(min-width:992px) 360px, (min-width:768px) 50vw, 100vw',
+                ) !!}
+                <span><i class="bi bi-arrow-up-right"></i></span>
+            </a>
+        @else
+            <a class="proj-img ph" href="{{ url('/projects/' . $pr->id) }}">Screenshot</a>
         @endif
         <div class="p-4 d-flex flex-column flex-grow-1"><span
                 class="small text-primary fw-semibold">{{ $pr->category }}</span>

@@ -2,7 +2,8 @@
 @use('App\Support\Ui')
 @php $name = $s['name'] ?? $p['name']; @endphp
 @section('title', 'Technology Stack | ' . $name)
-@section('desc', 'Technologies and tools: HTML5, CSS3, JavaScript, Bootstrap, PHP, Laravel, MySQL, SEO and digital
+@section('desc',
+    'Technologies and tools: HTML5, CSS3, JavaScript, Bootstrap, PHP, Laravel, MySQL, SEO and digital
     marketing tools.')
 @section('content')
     @include('sections.pagehead', [
@@ -22,8 +23,8 @@
                         <div class="card tech h-100 p-3 rv" style="--d:{{ ($i % 4) * 0.06 }}s">
                             <div class="tic"><span>{{ mb_substr($t->name, 0, 2) }}</span>
                                 @if (Ui::logo($t->name))
-                                    <img src="{{ Ui::logo($t->name) }}" alt="" loading="lazy"
-                                        onerror="this.remove()">
+                                    <img src="{{ Ui::logo($t->name) }}" alt="" width="30" height="30"
+                                        loading="lazy" onerror="this.remove()">
                                 @endif
                             </div>
                             <h3 class="h6 mt-3 mb-1">{{ $t->name }}</h3><span

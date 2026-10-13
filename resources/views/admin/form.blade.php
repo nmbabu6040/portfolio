@@ -5,9 +5,12 @@
         <a class="btn btn-outline-secondary" href="/admin/{{ $t }}"><i class="bi bi-arrow-left me-1"></i>Back</a>
     </div>
     <form method="post" enctype="multipart/form-data" class="acard p-4" style="max-width:860px"
-        action="/admin/{{ $t }}{{ $item ? '/' . $item->id : '' }}">@csrf
+        action="/admin/{{ $t }}{{ $item ? '/' . $item->id : '' }}">
+        @csrf
         @include('admin.fields', ['f' => $R['f'], 'v' => $item])
-        <div class="d-flex gap-2 pt-2"><button class="btn btn-primary px-4"><i class="bi bi-check2 me-1"></i>Save</button><a
-                class="btn btn-outline-secondary" href="/admin/{{ $t }}">Cancel</a></div>
+        <div class="d-flex gap-2 pt-2">
+            <button class="btn btn-primary px-4"><i class="bi bi-check2 me-1"></i>Save</button>
+            <a class="btn btn-outline-secondary" href="/admin/{{ $t }}">Cancel</a>
+        </div>
     </form>
 @endsection

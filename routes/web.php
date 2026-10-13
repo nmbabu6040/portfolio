@@ -34,6 +34,8 @@ Route::get('/robots.txt', fn() => response("User-agent: *\nDisallow: /admin\nDis
 
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('login');
 Route::post('/admin/login', [AdminController::class, 'login'])->middleware('throttle:5,1');
+Route::get('/admin/two-factor', [AdminController::class, 'twoFactorForm']);
+Route::post('/admin/two-factor', [AdminController::class, 'twoFactorCheck'])->middleware('throttle:10,1');
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard']);
     Route::get('error-preview/{code}', fn($code) => response()->view("errors.$code", [], (int) $code))->whereIn('code', ['401', '403', '404', '405', '419', '429', '500', '503']);
@@ -42,6 +44,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('settings/test-mail', [AdminController::class, 'testMail']);
     Route::get('password', [AdminController::class, 'passwordForm']);
     Route::post('password', [AdminController::class, 'passwordSave']);
+    Route::get('security', [AdminController::class, 'security']);
+    Route::post('security/enable', [AdminController::class, 'securityEnable']);
+    Route::post('security/recovery', [AdminController::class, 'securityRecovery']);
+    Route::post('security/disable', [AdminController::class, 'securityDisable']);
     Route::get('backup', [AdminController::class, 'backupForm']);
     Route::post('backup/download', [AdminController::class, 'backupDownload']);
     Route::post('upload', [AdminController::class, 'upload']);

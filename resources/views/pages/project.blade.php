@@ -18,8 +18,15 @@
                 <div class="col-lg-8">
                     @if ($pr->image)
                         <button class="btn p-0 border-0 mb-4 w-100" data-lb="{{ asset($pr->image) }}"
-                            aria-label="Enlarge screenshot"><img src="{{ asset($pr->image) }}"
-                                class="img-fluid rounded-4 w-100" alt="{{ $pr->title }} screenshot"></button>
+                            aria-label="Enlarge screenshot">
+                            {!! \App\Support\Ui::pic(
+                                $pr->image,
+                                $pr->title . ' screenshot',
+                                '(min-width:992px) 760px, 100vw',
+                                'img-fluid rounded-4 w-100',
+                                'high',
+                            ) !!}
+                        </button>
                     @endif
                     <p class="fs-5 text-body-secondary">{{ $pr->description }}</p>
                     @if ($pr->details)

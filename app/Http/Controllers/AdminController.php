@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Entry, Setting};
-use App\Support\{Html, Img, MailConfig};
+use App\Support\{Html, Img, MailConfig, Totp};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema, Storage};
 use Illuminate\Support\Str;
@@ -77,7 +77,7 @@ class AdminController extends Controller
         $d = $r->validate(array_map(fn($x) => $x[1], $f));
         foreach ($f as $n => $x) {
             if ($x[0] == 'file') {
-                if ($r->hasFile($n)) $d[$n] = str_contains($x[1], 'image') ? Img::store($r->file($n), $n == 'photo' ? 900 : 1600) : 'storage/' . $r->file($n)->store('uploads', 'public');
+                if ($r->hasFile($n)) $d[$n] = str_contains($x[1], 'image') ? Img::store($r->file($n), ['photo' => 900, 'logo' => 600, 'favicon' => 256][$n] ?? 1600) : 'storage/' . $r->file($n)->store('uploads', 'public');
                 else unset($d[$n]);
             } elseif ($x[0] == 'check') $d[$n] = $r->boolean($n);
             elseif ($x[0] == 'rich') $d[$n] = Html::clean((string) ($d[$n] ?? ''));
@@ -94,11 +94,17 @@ class AdminController extends Controller
     }
     public function login(Request $r)
     {
-        if (Auth::attempt($r->validate(['email' => 'required|email', 'password' => 'required']))) {
-            $r->session()->regenerate();
-            return redirect('/admin');
+        $c = $r->validate(['email' => 'required|email', 'password' => 'required']);
+        if (!Auth::validate($c)) return back()->withErrors(['email' => 'Invalid login.']);
+        $u = \App\Models\User::where('email', $c['email'])->first();
+        if ($u->two_factor_enabled) {
+            $r->session()->put('2fa', ['id' => $u->id, 'at' => now()->timestamp]);
+            $r->session()->forget('2fa_fail');
+            return redirect('/admin/two-factor');
         }
-        return back()->withErrors(['email' => 'Invalid login.']);
+        Auth::login($u);
+        $r->session()->regenerate();
+        return redirect('/admin');
     }
     public function logout(Request $r)
     {
@@ -332,8 +338,12 @@ class AdminController extends Controller
     private function mediaRemove(string $name): void
     {
         $disk = Storage::disk('public');
+        $base = pathinfo($name, PATHINFO_FILENAME);
         $disk->delete('uploads/' . $name);
-        if (str_ends_with(strtolower($name), '.webp')) $disk->delete('uploads/' . pathinfo($name, PATHINFO_FILENAME) . '.jpg');
+        if (str_ends_with(strtolower($name), '.webp')) {
+            foreach (['jpg', 'avif'] as $e) $disk->delete("uploads/$base.$e");
+            foreach ([240, 480, 800, 1200] as $w) foreach (['webp', 'avif'] as $e) $disk->delete("uploads/$base-$w.$e");
+        }
     }
     private function mediaHay(): array
     {
@@ -354,7 +364,8 @@ class AdminController extends Controller
     private function mediaItems(): array
     {
         $disk = Storage::disk('public');
-        $files = collect($disk->files('uploads'))->filter(fn($f) => preg_match('/\.(webp|jpe?g|png|gif|ico)$/i', $f));
+
+        $files = collect($disk->files('uploads'))->filter(fn($f) => preg_match('/\.(webp|jpe?g|png|gif|ico)$/i', $f) && !preg_match('/-\d+\.webp$/i', $f));
         $webp = $files->filter(fn($f) => str_ends_with(strtolower($f), '.webp'))->map(fn($f) => pathinfo($f, PATHINFO_FILENAME))->all();
         $hay = $this->mediaHay();
         $items = [];
@@ -371,5 +382,118 @@ class AdminController extends Controller
         }
         usort($items, fn($a, $b) => $b['time'] <=> $a['time']);
         return $items;
+    }
+
+
+    private function dec(?string $v): ?string
+    {
+        try {
+            return $v ? Crypt::decryptString($v) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+    private function makeCodes(): array
+    {
+        return array_map(function () {
+            $h = bin2hex(random_bytes(5));
+            return substr($h, 0, 5) . '-' . substr($h, 5);
+        }, range(1, 8));
+    }
+    private function saveCodes(Request $r, array $codes): void
+    {
+        $hashes = array_map(fn($c) => Hash::make(str_replace('-', '', $c)), $codes);
+        $r->user()->forceFill(['two_factor_recovery' => Crypt::encryptString(json_encode($hashes))])->save();
+        $r->session()->put('new_codes', $codes);
+    }
+    public function twoFactorForm(Request $r)
+    {
+        if (!$r->session()->has('2fa')) return redirect('/admin/login');
+        return view('admin.two-factor');
+    }
+    public function twoFactorCheck(Request $r)
+    {
+        $p = $r->session()->get('2fa');
+        if (!$p || now()->timestamp - $p['at'] > 300) {
+            $r->session()->forget(['2fa', '2fa_fail']);
+            return redirect('/admin/login')->withErrors(['email' => 'Login expired. Please sign in again.']);
+        }
+        $r->validate(['code' => 'required|string|max:20']);
+        $u = \App\Models\User::find($p['id']);
+        $in = trim((string) $r->input('code'));
+        $ok = false;
+        $usedRecovery = false;
+        $secret = $u ? $this->dec($u->two_factor_secret) : null;
+        if ($secret) {
+            $step = Totp::verify($secret, $in, (int) $u->two_factor_last);
+            if ($step !== null) {
+                $u->forceFill(['two_factor_last' => $step])->save();
+                $ok = true;
+            } else {
+                $codes = json_decode($this->dec($u->two_factor_recovery) ?? '[]', true) ?: [];
+                $norm = strtolower(str_replace([' ', '-'], '', $in));
+                foreach ($codes as $i => $h) {
+                    if (Hash::check($norm, $h)) {
+                        unset($codes[$i]);
+                        $u->forceFill(['two_factor_recovery' => Crypt::encryptString(json_encode(array_values($codes)))])->save();
+                        $ok = $usedRecovery = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!$ok) {
+            $n = (int) $r->session()->get('2fa_fail', 0) + 1;
+            $r->session()->put('2fa_fail', $n);
+            if ($n >= 5) {
+                $r->session()->forget(['2fa', '2fa_fail']);
+                return redirect('/admin/login')->withErrors(['email' => 'Too many wrong codes. Please sign in again.']);
+            }
+            return back()->withErrors(['code' => 'Wrong code. Please try again.']);
+        }
+        Auth::login($u);
+        $r->session()->regenerate();
+        $r->session()->forget(['2fa', '2fa_fail']);
+        return redirect('/admin')->with('ok', $usedRecovery ? 'You used a recovery code. Please create new recovery codes in Two-factor (2FA).' : 'Welcome back.');
+    }
+    public function security(Request $r)
+    {
+        $u = $r->user();
+        $setup = null;
+        if (!$u->two_factor_enabled) {
+            $secret = $r->session()->get('2fa_setup');
+            if (!$secret) {
+                $secret = Totp::secret();
+                $r->session()->put('2fa_setup', $secret);
+            }
+            $setup = ['secret' => $secret, 'uri' => Totp::uri($secret, $u->email, Setting::map()['name'] ?? config('app.name'))];
+        }
+        $left = count(json_decode($this->dec($u->two_factor_recovery) ?? '[]', true) ?: []);
+        return view('admin.security', ['enabled' => (bool) $u->two_factor_enabled, 'setup' => $setup, 'left' => $left, 'newCodes' => $r->session()->pull('new_codes')]);
+    }
+    public function securityEnable(Request $r)
+    {
+        $r->validate(['code' => 'required']);
+        $secret = $r->session()->get('2fa_setup');
+        $step = $secret ? Totp::verify($secret, (string) $r->input('code')) : null;
+        if ($step === null) return back()->withErrors(['code' => 'That code is not correct. Check the code in your app and your computer clock, then try again.']);
+        $r->user()->forceFill(['two_factor_secret' => Crypt::encryptString($secret), 'two_factor_enabled' => true, 'two_factor_last' => $step])->save();
+        $this->saveCodes($r, $this->makeCodes());
+        $r->session()->forget('2fa_setup');
+        return redirect('/admin/security')->with('ok', 'Two-factor login is now ON.');
+    }
+    public function securityRecovery(Request $r)
+    {
+        $r->validate(['password' => 'required']);
+        if (!Hash::check($r->password, $r->user()->password)) return back()->withErrors(['password' => 'Wrong password.']);
+        $this->saveCodes($r, $this->makeCodes());
+        return redirect('/admin/security')->with('ok', 'New recovery codes created. The old codes no longer work.');
+    }
+    public function securityDisable(Request $r)
+    {
+        $r->validate(['password' => 'required']);
+        if (!Hash::check($r->password, $r->user()->password)) return back()->withErrors(['password' => 'Wrong password.']);
+        $r->user()->forceFill(['two_factor_secret' => null, 'two_factor_enabled' => false, 'two_factor_recovery' => null, 'two_factor_last' => null])->save();
+        return redirect('/admin/security')->with('ok', 'Two-factor login is now OFF.');
     }
 }

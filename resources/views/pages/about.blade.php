@@ -11,7 +11,7 @@
     <section class="sec">
         <div class="container">
             <div class="row g-5">
-                <div class="col-lg-7">
+                <div class="col-lg-9">
                     @foreach ($about as $t)
                         <p class="text-body-secondary fs-5">{{ $t }}</p>
                     @endforeach
@@ -22,10 +22,10 @@
                         @endif
                     </div>
                 </div>
-                <div class="col-lg-5">
+                <div class="col-lg-3">
                     <div class="row g-3">
                         @foreach ($p['pillars'] as $i => $t)
-                            <div class="col-6">
+                            <div class="col-12">
                                 <div class="tile rv" style="--d:{{ $i * 0.08 }}s"><i
                                         class="bi {{ $pillIcons[$i % 4] }}"></i>
                                     <h3 class="h6 mb-0">{{ $t }}</h3>

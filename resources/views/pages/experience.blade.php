@@ -2,7 +2,8 @@
 @use('App\Support\Ui')
 @php $name = $s['name'] ?? $p['name']; @endphp
 @section('title', 'Experience | ' . $name)
-@section('desc', 'Professional experience in Sales & Marketing since 2007, with education, certifications and
+@section('desc',
+    'Professional experience in Sales & Marketing since 2007, with education, certifications and
     achievements.')
 @section('content')
     @include('sections.pagehead', [

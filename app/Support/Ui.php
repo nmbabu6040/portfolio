@@ -47,4 +47,42 @@ class Ui
             default => 'bi-stars'
         };
     }
+
+    public static function v(string $rel): string
+    {
+        $p = public_path($rel);
+        return asset($rel) . '?v=' . (is_file($p) ? filemtime($p) : '1');
+    }
+    public static function dims(string $rel): ?array
+    {
+        static $c = [];
+        if (array_key_exists($rel, $c)) return $c[$rel];
+        $p = public_path($rel);
+        $i = is_file($p) ? @getimagesize($p) : false;
+        return $c[$rel] = $i ? [$i[0], $i[1]] : null;
+    }
+    // responsive <picture>: $load = 'lazy' | 'eager' | 'high' (eager + fetchpriority high, for the main image of a page)
+    public static function pic(?string $path, string $alt = '', string $sizes = '100vw', string $class = '', string $load = 'lazy'): string
+    {
+        if (!$path) return '';
+        $d = self::dims($path);
+        $attr = ' alt="' . e($alt) . '"' . ($class ? ' class="' . e($class) . '"' : '') . ($d ? ' width="' . $d[0] . '" height="' . $d[1] . '"' : '') . ' decoding="async"';
+        $attr .= $load === 'lazy' ? ' loading="lazy"' : ($load === 'high' ? ' fetchpriority="high"' : '');
+        $img = '<img src="' . e(asset($path)) . '"' . $attr . '>';
+        if (!$d || !preg_match('/\.webp$/i', $path)) return $img;
+        $base = substr($path, 0, -5);
+        $set = function (string $ext) use ($base, $d) {
+            $parts = [];
+            foreach ([240, 480, 800, 1200] as $w) {
+                if ($w < $d[0] && is_file(public_path("$base-$w.$ext"))) $parts[] = e(asset("$base-$w.$ext")) . " {$w}w";
+            }
+            if (is_file(public_path("$base.$ext"))) $parts[] = e(asset("$base.$ext")) . " {$d[0]}w";
+            return (count($parts) > 1 || ($ext === 'avif' && $parts)) ? implode(', ', $parts) : null;
+        };
+        $out = '';
+        foreach (['avif' => 'image/avif', 'webp' => 'image/webp'] as $ext => $type) {
+            if ($s = $set($ext)) $out .= '<source type="' . $type . '" srcset="' . $s . '" sizes="' . e($sizes) . '">';
+        }
+        return $out === '' ? $img : '<picture>' . $out . $img . '</picture>';
+    }
 }

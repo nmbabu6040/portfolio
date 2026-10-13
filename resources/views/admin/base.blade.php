@@ -95,6 +95,9 @@
                         <a class="sb-link {{ $on('/admin/password') ? 'on' : '' }}" href="/admin/password"><i
                                 class="bi bi-shield-lock"></i>Password</a>
 
+                        <a class="sb-link {{ $on('/admin/security') ? 'on' : '' }}" href="/admin/security"><i
+                                class="bi bi-phone"></i>Two-factor (2FA)</a>
+
                         <a class="sb-link {{ $on('/admin/backup') ? 'on' : '' }}" href="/admin/backup"><i
                                 class="bi bi-cloud-download"></i>Backup</a>
                     </nav>

@@ -555,3 +555,25 @@ aside.sb {
 .min-w-0 {
     min-width: 0;
 }
+.rcodes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    max-width: 360px;
+}
+.rcodes code {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f1f3ff;
+    color: #312e81;
+    font-size: 1rem;
+    text-align: center;
+    user-select: all;
+}
+.qrbox {
+    background: #fff;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: inline-block;
+}

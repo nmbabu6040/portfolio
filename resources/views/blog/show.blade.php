@@ -34,7 +34,13 @@
                             href="{{ url('/affiliate-disclosure') }}">Learn more</a></span></div>
             @endif
             @if ($post->image)
-                <img src="{{ asset($post->image) }}" class="img-fluid rounded-4 mb-4 w-100" alt="{{ $post->title }}">
+                {!! \App\Support\Ui::pic(
+                    $post->image,
+                    $post->title,
+                    '(min-width:992px) 780px, 100vw',
+                    'img-fluid rounded-4 mb-4 w-100',
+                    'high',
+                ) !!}
             @endif
             <div class="post-body">{!! \App\Support\Html::render($post->body) !!}</div>
             <hr class="my-4">
