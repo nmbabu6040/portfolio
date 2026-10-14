@@ -16,13 +16,15 @@
             </div>
             <div class="row g-4" id="pg">
                 @forelse($projects as $i => $pr)
-                    @include('sections.project-card')@empty
+                    @include('sections.project-card')
+                @empty
                     <div class="col-12">
                         <div class="card p-4 text-center text-body-secondary">No projects yet. Add them from Admin &gt;
                             Projects.</div>
                     </div>
                 @endforelse
             </div>
+            <div class="mt-5 d-flex justify-content-center">{{ $projects->links() }}</div>
         </div>
     </section>
 @endsection

@@ -53,7 +53,7 @@ class SiteController extends Controller
     }
     public function projects()
     {
-        return $this->v('pages.projects', ['projects' => Entry::of('projects')->newQuery()->orderBy('sort')->orderByDesc('id')->get()]);
+        return $this->v('pages.projects', ['projects' => Entry::of('projects')->newQuery()->orderBy('sort')->orderByDesc('id')->paginate(9), 'cats' => $this->cats()]);
     }
     public function project(int $id)
     {

@@ -58,11 +58,12 @@
                             @if ($pr->demo)
                                 <a class="btn btn-primary" href="{{ $pr->demo }}" target="_blank"
                                     rel="noopener noreferrer">Live Demo</a>
-                                @endif @if ($pr->code)
-                                    <a class="btn btn-ghost" href="{{ $pr->code }}" target="_blank"
-                                        rel="noopener noreferrer">Source Code</a>
-                                @endif
-                                <a class="btn btn-ghost" href="{{ url('/projects') }}">All projects</a>
+                            @endif
+                            @if ($pr->code)
+                                <a class="btn btn-ghost" href="{{ $pr->code }}" target="_blank"
+                                    rel="noopener noreferrer">Source Code</a>
+                            @endif
+                            <a class="btn btn-ghost" href="{{ url('/projects') }}">All projects</a>
                         </div>
                     </div>
                 </aside>
