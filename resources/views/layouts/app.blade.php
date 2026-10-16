@@ -65,8 +65,10 @@
     <div id="prog"></div>
 
     @if (!empty($s['maintenance']) && auth()->check())
-        <div class="mt-bar"><i class="bi bi-tools me-1"></i>Maintenance mode is ON. Visitors see the maintenance page,
-            you see the real site because you are logged in.</div>
+        <div class="mt-bar">
+            <i class="bi bi-tools me-1"></i>Maintenance mode is ON. Visitors see the maintenance page,
+            you see the real site because you are logged in.
+        </div>
     @endif
 
     <nav class="navbar navbar-expand-xl sticky-top ">
@@ -82,20 +84,28 @@
                     class="bi bi-list fs-2"></i></button>
             <div class="collapse navbar-collapse" id="nav">
                 <ul class="navbar-nav ms-auto align-items-xl-center gap-xl-1">
-                    <li class="nav-item"><a class="nav-link {{ request()->is('/') ? 'active' : '' }}"
-                            href="{{ url('/') }}">Home</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('/') ? 'active' : '' }}"
+                            href="{{ url('/') }}">Home</a>
+                    </li>
+
                     @foreach ($nav as $k => $l)
-                        <li class="nav-item"><a
-                                class="nav-link {{ request()->is($k) || request()->is($k . '/*') ? 'active' : '' }}"
-                                href="{{ url($k) }}">{{ $l }}</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is($k) || request()->is($k . '/*') ? 'active' : '' }}"
+                                href="{{ url($k) }}">{{ $l }}</a>
+                        </li>
                     @endforeach
-                    <li class="nav-item ms-xl-2"><button class="btn btn-ghost btn-sm px-3" id="theme"
-                            aria-label="Toggle dark mode"><i class="bi bi-circle-half"></i></button></li>
+                    <li class="nav-item ms-xl-2">
+                        <button class="btn btn-ghost btn-sm px-3" id="theme" aria-label="Toggle dark mode"><i
+                                class="bi bi-circle-half"></i></button>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-    <main>@yield('content')</main>
+    <main>
+        @yield('content')
+    </main>
 
     <section class="foot-cta">
         <div class="container">
@@ -223,8 +233,10 @@
         <div id="cc" class="cc d-none" role="dialog" aria-label="Cookie consent">
             <p class="mb-2 small">I use cookies for anonymous visitor statistics (Google Analytics). <a
                     href="{{ url('/privacy') }}">Privacy policy</a></p>
-            <div class="d-flex gap-2"><button class="btn btn-primary btn-sm" data-cc="yes">Accept</button><button
-                    class="btn btn-ghost btn-sm" data-cc="no">Decline</button></div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" data-cc="yes">Accept</button>
+                <button class="btn btn-ghost btn-sm" data-cc="no">Decline</button>
+            </div>
         </div>
     @endif
     @if (!empty($s['whatsapp']))

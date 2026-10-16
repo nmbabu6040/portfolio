@@ -1,63 +1,90 @@
-document.querySelectorAll("[data-rich]").forEach(function (el) {
-    var input = document.getElementById(el.dataset.rich);
-    var q = new Quill(el, {
-        theme: "snow",
-        modules: {
-            toolbar: {
-                container: [
-                    [{ header: [2, 3, false] }],
-                    ["bold", "italic", "underline", "strike"],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                    ["blockquote", "code-block"],
-                    ["link", "image"],
-                    ["clean"],
-                ],
-                handlers: {
-                    image: function () {
-                        var f = document.createElement("input");
-                        f.type = "file";
-                        f.accept = "image/*";
-                        f.onchange = async function () {
-                            var fd = new FormData();
-                            fd.append("image", f.files[0]);
-                            var r = await fetch("/admin/upload", {
-                                method: "POST",
-                                headers: {
-                                    "X-CSRF-TOKEN":
-                                        document.querySelector(
-                                            "meta[name=csrf]",
-                                        ).content,
-                                    Accept: "application/json",
-                                },
-                                body: fd,
-                            });
-                            if (!r.ok) {
-                                alert("Image upload failed");
-                                return;
-                            }
-                            var j = await r.json();
-                            var i = (
-                                q.getSelection(true) || { index: q.getLength() }
-                            ).index;
-                            q.insertEmbed(i, "image", j.url);
-                            q.setSelection(i + 1);
-                        };
-                        f.click();
+// ---------- rich text editors (Quill) ----------
+(function () {
+    function esc(s) {
+        return s
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+    // old plain-text values become paragraphs in the editor
+    function toHtml(v) {
+        if (!v) return "";
+        if (/<\/?[a-z][\s\S]*>/i.test(v)) return v;
+        return v
+            .split(/\n{2,}/)
+            .map(function (p) {
+                return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>";
+            })
+            .join("");
+    }
+    var FULL = [
+        [{ header: [2, 3, 4, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "code-block"],
+        ["link", "image"],
+        ["clean"],
+    ];
+    var SHORT = [
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link"],
+        ["clean"],
+    ];
+    document.querySelectorAll("[data-rich]").forEach(function (el) {
+        if (typeof Quill === "undefined") return;
+        var input = document.getElementById(el.dataset.rich),
+            full = el.dataset.mode !== "short",
+            q;
+        function pickImage() {
+            var f = document.createElement("input");
+            f.type = "file";
+            f.accept = "image/*";
+            f.onchange = async function () {
+                var fd = new FormData();
+                fd.append("image", f.files[0]);
+                var r = await fetch("/admin/upload", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN":
+                            document.querySelector("meta[name=csrf]").content,
+                        Accept: "application/json",
                     },
-                },
+                    body: fd,
+                });
+                if (!r.ok) {
+                    alert("Image upload failed");
+                    return;
+                }
+                var j = await r.json();
+                var i = (q.getSelection(true) || { index: q.getLength() })
+                    .index;
+                q.insertEmbed(i, "image", j.url);
+                q.setSelection(i + 1);
+            };
+            f.click();
+        }
+        q = new Quill(el, {
+            theme: "snow",
+            placeholder: full ? "Write here..." : "Write a short text...",
+            modules: {
+                toolbar: full
+                    ? { container: FULL, handlers: { image: pickImage } }
+                    : { container: SHORT },
             },
-        },
+        });
+        var html = toHtml(input.value);
+        if (html) q.clipboard.dangerouslyPasteHTML(html);
+        el.closest("form").addEventListener("submit", function () {
+            input.value =
+                q.getText().trim() === "" && !q.root.querySelector("img")
+                    ? ""
+                    : q.getSemanticHTML().replace(/&nbsp;/g, " ");
+        });
     });
-    if (input.value) q.clipboard.dangerouslyPasteHTML(input.value);
-    el.closest("form").addEventListener("submit", function () {
-        input.value =
-            q.getText().trim() === "" && !q.root.querySelector("img")
-                ? ""
-                : q.root.innerHTML;
-    });
-});
+})();
 
-// drag-and-drop reorder
+// ---------- drag-and-drop reorder ----------
 document.querySelectorAll("[data-sortable]").forEach(function (el) {
     var note = document.getElementById("sortnote");
     Sortable.create(el, {
@@ -99,7 +126,7 @@ document.querySelectorAll("[data-sortable]").forEach(function (el) {
     });
 });
 
-// media library: copy image URL
+// ---------- media library: copy image URL ----------
 document.querySelectorAll("[data-copyurl]").forEach(function (b) {
     b.addEventListener("click", function () {
         var t = b.dataset.copyurl,
@@ -123,7 +150,7 @@ document.querySelectorAll("[data-copyurl]").forEach(function (b) {
     });
 });
 
-// image picker: choose an image from the media library
+// ---------- image picker (media library popup) ----------
 (function () {
     var modalEl = document.getElementById("picker");
     if (!modalEl) return;

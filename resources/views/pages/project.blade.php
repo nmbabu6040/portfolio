@@ -28,7 +28,7 @@
                             ) !!}
                         </button>
                     @endif
-                    <p class="fs-5 text-body-secondary">{{ $pr->description }}</p>
+                    <div class="fs-5 text-body-secondary rich">{!! \App\Support\Html::render((string) $pr->description) !!}</div>
                     @if ($pr->details)
                         <div class="post-body">{!! \App\Support\Html::render($pr->details) !!}</div>
                     @endif

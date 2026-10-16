@@ -43,8 +43,6 @@
                 <div class="col-lg-5 order-1 order-lg-2 text-center">
                     <div class="frame">
                         @if (!empty($s['photo']))
-                            {{-- <img src="{{ asset($s['photo']) }}" width="380" height="380"
-                                alt="Portrait of {{ $name }}"> --}}
                             {!! \App\Support\Ui::pic($s['photo'], 'Portrait of ' . $name, '(max-width:487px) 78vw, 380px', '', 'high') !!}
                         @else
                             <div class="frame-ph">{{ $ini }}</div>

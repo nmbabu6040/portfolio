@@ -14,11 +14,17 @@
         <div class="container">
             <div class="row g-5">
                 <div class="col-lg-8">
-                    <div class="sic mb-3"><i class="bi {{ Ui::icon($sv->icon, $sv->title) }}"></i></div>
-                    <div class="post-body">{!! $sv->details ? \App\Support\Html::render($sv->details) : '<p>' . e($sv->description) . '</p>' !!}</div>
+                    <div class="sic mb-3">
+                        <i class="bi {{ Ui::icon($sv->icon, $sv->title) }}"></i>
+                    </div>
+                    <div class="post-body">{!! $sv->details
+                        ? \App\Support\Html::render($sv->details)
+                        : \App\Support\Html::render((string) $sv->description) !!}
+                    </div>
                     <a class="btn btn-primary btn-lg mt-3"
                         href="{{ url('/quote') }}?service={{ urlencode($sv->title) }}">Request a quote <i
-                            class="bi bi-arrow-right ms-1"></i></a> <a class="btn btn-ghost btn-lg mt-3"
+                            class="bi bi-arrow-right ms-1"></i></a>
+                    <a class="btn btn-ghost btn-lg mt-3"
                         href="{{ url('/contact') }}?subject={{ urlencode($sv->title) }}">Ask a question</a>
                     @include('sections.faq')
                 </div>

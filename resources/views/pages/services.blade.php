@@ -28,7 +28,7 @@
                         <div class="card step h-100 p-4 rv" style="--d:{{ ($i % 3) * 0.08 }}s">
                             <div class="step-n">0{{ $i + 1 }}</div>
                             <h3 class="h5">{{ $w->title }}</h3>
-                            <p class="text-body-secondary mb-0">{{ $w->description }}</p>
+                            <div class="text-body-secondary rich">{!! \App\Support\Html::render((string) $w->description) !!}</div>
                         </div>
                     </div>
                 @endforeach

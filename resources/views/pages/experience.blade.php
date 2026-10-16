@@ -44,8 +44,8 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 p-4 rv"><i class="bi bi-mortarboard fs-3 text-primary"></i>
                                 <h3 class="h6 mt-2">{{ $e->title }}</h3>
-                                <p class="small text-body-secondary mb-0">{{ $e->institution }}
-                                    {{ $e->period }}<br>{{ $e->details }}</p>
+                                <p class="small text-body-secondary mb-1">{{ $e->institution }} {{ $e->period }}</p>
+                                <div class="small text-body-secondary rich">{!! \App\Support\Html::render((string) $e->details) !!}</div>
                             </div>
                         </div>
                     @endforeach
@@ -66,7 +66,7 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 p-4 rv"><i class="bi bi-award fs-3 text-warning"></i>
                                 <h3 class="h6 mt-2">{{ $e->title }} {{ $e->year }}</h3>
-                                <p class="small text-body-secondary mb-0">{{ $e->details }}</p>
+                                <div class="small text-body-secondary rich">{!! \App\Support\Html::render((string) $e->details) !!}</div>
                             </div>
                         </div>
                     @endforeach

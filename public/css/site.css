@@ -987,3 +987,17 @@ picture {
     aspect-ratio: 1;
     object-fit: cover;
 }
+.rich p:last-child,
+.hero-text p:last-child {
+    margin-bottom: 0;
+}
+.rich ul,
+.rich ol,
+.hero-text ul,
+.hero-text ol {
+    padding-left: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+.rich a {
+    text-decoration: underline;
+}

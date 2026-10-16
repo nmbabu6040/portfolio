@@ -610,3 +610,24 @@ aside.sb {
     object-fit: cover;
     display: block;
 }
+.fgrid > div:has([data-rich]) {
+    grid-column: 1/-1;
+}
+.rich-box {
+    border-radius: 12px;
+    background: #fff;
+}
+.rich-box .ql-toolbar {
+    border-radius: 12px 12px 0 0;
+    background: #f8f9ff;
+    position: sticky;
+    top: 64px;
+    z-index: 5;
+}
+.rich-box .ql-container {
+    border-radius: 0 0 12px 12px;
+    font-size: 0.95rem;
+}
+.rich-box .ql-editor {
+    line-height: 1.7;
+}

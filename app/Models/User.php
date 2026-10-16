@@ -46,4 +46,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function hasPerm(string $perm): bool
+    {
+        return (bool) $this->active && in_array($this->role, config('roles.perms')[$perm] ?? [], true);
+    }
 }

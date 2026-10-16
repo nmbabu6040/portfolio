@@ -5,14 +5,17 @@
         'areas' => 'Comma separated',
         'items' => 'Comma separated',
         'sort' => 'Lower number appears first',
-        'about' => 'Separate paragraphs with a blank line',
         'cv' => 'PDF or Word, max 5 MB',
         'photo' => 'Auto-converted to WebP',
         'slug' => 'Leave empty to generate from the title',
         'seo_title' => 'Ideal: 50 to 60 characters',
-        'seo_description' => 'Ideal: 120 to 160 characters',
+        'seo_description' => 'Plain text. Ideal: 120 to 160 characters',
         'visible' => 'Show on the website',
         'published' => 'Visible on the blog',
+        'has_affiliate' => 'Shows an affiliate disclosure at the top of this post',
+        'affiliate_domains' =>
+            'One domain per line, e.g. amzn.to. Links to these domains get rel="sponsored nofollow" automatically',
+        'affiliate_disclosure' => 'Leave empty to show the default text on /affiliate-disclosure',
         'ga_id' => 'Example: G-ABC123XYZ',
         'gsc_verify' => 'Only the content value of the Search Console meta tag',
         'mail_host' => 'Gmail: smtp.gmail.com (port 587, tls, use an App Password)',
@@ -23,22 +26,20 @@
         'quote' => "The client's own words. Do not edit them to sound better.",
         'permission' =>
             'Required: tick only if this is a real client and you have their permission to publish this review',
-        'has_affiliate' => 'Shows an affiliate disclosure at the top of this post',
-        'affiliate_domains' =>
-            'One domain per line, e.g. amzn.to. Links to these domains get rel="sponsored nofollow" automatically',
-        'affiliate_disclosure' => 'Leave empty to show the default text on /affiliate-disclosure',
     ];
-
 @endphp
 @foreach ($f as $n => $x)
     <div class="mb-3">
         <label class="form-label fw-semibold">{{ ucwords(str_replace('_', ' ', $n)) }}</label>
         @if ($x[0] == 'textarea')
             <textarea name="{{ $n }}" rows="3" class="form-control">{{ old($n, data_get($v, $n, '')) }}</textarea>
-        @elseif($x[0] == 'rich')
+        @elseif(in_array($x[0], ['rich', 'richs']))
             <input type="hidden" id="r_{{ $n }}" name="{{ $n }}"
                 value="{{ old($n, data_get($v, $n, '')) }}">
-            <div data-rich="r_{{ $n }}" style="min-height:280px;background:#fff;color:#000"></div>
+            <div class="rich-box">
+                <div data-rich="r_{{ $n }}" data-mode="{{ $x[0] == 'rich' ? 'full' : 'short' }}"
+                    style="min-height:{{ $x[0] == 'rich' ? 280 : 110 }}px"></div>
+            </div>
         @elseif($x[0] == 'password')
             <input type="password" name="{{ $n }}" class="form-control" autocomplete="new-password"
                 placeholder="{{ data_get($v, $n) ? '•••••••• (saved)' : '' }}">
@@ -89,8 +90,7 @@
             @if (data_get($v, $n))
                 <small class="text-body-secondary">Current: {{ data_get($v, $n) }}</small>
             @endif
-        @else
-            <input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
+        @else<input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
         @endif
         @if (!empty($help[$n]))
             <div class="form-text">{{ $help[$n] }}</div>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Activity;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
@@ -18,5 +19,16 @@ class Setting extends Model
         } catch (\Throwable $e) {
             return [];
         }
+    }
+    protected static function booted(): void
+    {
+        static::created(fn($m) => self::log($m, 'created'));
+        static::updated(fn($m) => self::log($m, 'updated'));
+    }
+    private static function log($m, string $event): void
+    {
+        if (!auth()->check() || $m->name === 'last_backup') return;
+        if ($event === 'created' && ($m->value === null || $m->value === '')) return;
+        Activity::note('updated', 'Changed setting: ' . $m->name, 'Settings');
     }
 }

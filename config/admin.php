@@ -1,5 +1,6 @@
 <?php
 // Defines every editable section in the admin panel: [type, validation rules, options].
+// Types: input, textarea, rich (full editor), richs (short editor), select, check, number, file, service, category, password
 $cat = ['Web Design', 'Web Development', 'Laravel', 'Business', 'E-commerce', 'Blog/News', 'Digital'];
 $tc = ['Frontend', 'Backend', 'Database', 'Tools', 'Web & Hosting', 'Digital', 'Graphics'];
 $lv = ['', 'Familiar', 'Working Knowledge', 'Practical Experience', 'Experienced'];
@@ -13,7 +14,7 @@ return [
         'f' => [
             'title' => ['input', 'required|max:150'],
             'category' => ['select', 'required', $cat],
-            'description' => ['textarea', 'nullable'],
+            'description' => ['richs', 'nullable'],
             'tech' => ['input', 'nullable|max:255'],
             'features' => ['textarea', 'nullable'],
             'details' => ['rich', 'nullable'],
@@ -23,6 +24,7 @@ return [
             'sort' => $sort
         ] + $seo
     ],
+
     'posts' => [
         'label' => 'Blog posts',
         'title' => 'title',
@@ -30,7 +32,7 @@ return [
         'f' => [
             'title' => ['input', 'required|max:200'],
             'slug' => ['input', 'nullable|alpha_dash|max:160'],
-            'excerpt' => ['textarea', 'nullable|max:300'],
+            'excerpt' => ['richs', 'nullable|max:1500'],
             'body' => ['rich', 'required'],
             'image' => ['file', 'nullable|image|max:2048'],
             'category' => ['category', 'nullable|max:160'],
@@ -38,6 +40,7 @@ return [
             'has_affiliate' => ['check', 'nullable']
         ] + $seo
     ],
+
     'experiences' => [
         'label' => 'Experience',
         'title' => 'title',
@@ -50,6 +53,7 @@ return [
             'sort' => $sort
         ]
     ],
+
     'technologies' => [
         'label' => 'Technology stack',
         'title' => 'name',
@@ -63,6 +67,7 @@ return [
             'sort' => $sort
         ]
     ],
+
     'skills' => [
         'label' => 'Skills',
         'title' => 'title',
@@ -72,6 +77,7 @@ return [
             'sort' => $sort
         ]
     ],
+
     'services' => [
         'label' => 'Services',
         'title' => 'title',
@@ -79,11 +85,12 @@ return [
             'title' => ['input', 'required|max:100'],
             'slug' => ['input', 'nullable|alpha_dash|max:160'],
             'icon' => ['input', 'nullable|regex:/^bi-[a-z0-9-]+$/'],
-            'description' => ['textarea', 'nullable'],
+            'description' => ['richs', 'nullable'],
             'details' => ['rich', 'nullable'],
             'sort' => $sort
         ] + $seo
     ],
+
     'educations' => [
         'label' => 'Education',
         'title' => 'title',
@@ -92,10 +99,11 @@ return [
             'title' => ['input', 'required|max:150'],
             'institution' => ['input', 'nullable|max:200'],
             'period' => ['input', 'nullable|max:60'],
-            'details' => ['textarea', 'nullable'],
+            'details' => ['richs', 'nullable'],
             'sort' => $sort
         ]
     ],
+
     'certifications' => [
         'label' => 'Certifications',
         'title' => 'title',
@@ -108,6 +116,7 @@ return [
             'sort' => $sort
         ]
     ],
+
     'achievements' => [
         'label' => 'Achievements',
         'title' => 'title',
@@ -115,19 +124,21 @@ return [
         'f' => [
             'title' => ['input', 'required|max:150'],
             'year' => ['input', 'nullable|max:10'],
-            'details' => ['textarea', 'nullable'],
+            'details' => ['richs', 'nullable'],
             'sort' => $sort
         ]
     ],
+
     'workflows' => [
         'label' => 'Workflow steps',
         'title' => 'title',
         'f' => [
             'title' => ['input', 'required|max:80'],
-            'description' => ['textarea', 'nullable'],
+            'description' => ['richs', 'nullable'],
             'sort' => $sort
         ]
     ],
+
     'stats' => [
         'label' => 'Statistics',
         'title' => 'value',
@@ -138,6 +149,7 @@ return [
             'sort' => $sort
         ]
     ],
+
     'reasons' => [
         'label' => 'Why work with me',
         'title' => 'title',
@@ -164,12 +176,11 @@ return [
         'sub' => 'service',
         'f' => [
             'question' => ['input', 'required|max:200'],
-            'answer' => ['textarea', 'required|max:2000'],
+            'answer' => ['richs', 'required|max:6000'],
             'service' => ['service', 'nullable|max:160'],
             'sort' => $sort
         ]
     ],
-
 
     'testimonials' => [
         'label' => 'Testimonials',

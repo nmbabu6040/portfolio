@@ -7,28 +7,32 @@
     <meta name="robots" content="noindex">
     <meta name="csrf" content="{{ csrf_token() }}">
     <title>Admin</title>
-    {{-- <link rel="icon" type="image/x-icon" href="{{ $s['favicon'] }}"> --}}
+    <link rel="icon" href="{{ asset(\App\Models\Setting::map()['favicon'] ?? 'favicon.ico') }}">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
         rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-
-    <link rel="icon" href="{{ asset(\App\Models\Setting::map()['favicon'] ?? 'favicon.ico') }}">
     <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
 </head>
 
 <body class="adm">
     @auth
         @php
-            $unread = \App\Models\Entry::of('messages')->newQuery()->where('is_read', 0)->count();
             $user = auth()->user();
+            $can = fn($p) => $user->hasPerm($p);
+            $unread = $can('messages')
+                ? \App\Models\Entry::of('messages')->newQuery()->where('is_read', 0)->count()
+                : 0;
             $logo = \App\Models\Setting::map()['logo'] ?? null;
             $ic = [
                 'projects' => 'bi-kanban',
                 'posts' => 'bi-journal-text',
+                'categories' => 'bi-tags',
                 'services' => 'bi-grid',
+                'faqs' => 'bi-question-circle',
+                'testimonials' => 'bi-chat-quote',
                 'experiences' => 'bi-briefcase',
                 'educations' => 'bi-mortarboard',
                 'certifications' => 'bi-patch-check',
@@ -38,9 +42,6 @@
                 'workflows' => 'bi-diagram-3',
                 'stats' => 'bi-bar-chart',
                 'reasons' => 'bi-check2-circle',
-                'faqs' => 'bi-question-circle',
-                'testimonials' => 'bi-chat-quote',
-                'categories' => 'bi-tags',
             ];
             $groups = [
                 'Content' => ['projects', 'posts', 'categories', 'services', 'faqs', 'testimonials'],
@@ -54,56 +55,76 @@
             <aside class="offcanvas-lg offcanvas-start sb" tabindex="-1" id="side">
                 <div class="sb-in">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <a class="sb-brand" href="/admin">
-                            <span class="sb-logo {{ $logo ? 'has-img' : '' }}">
+                        <a class="sb-brand" href="/admin"><span class="sb-logo {{ $logo ? 'has-img' : '' }}">
                                 @if ($logo)
                                     <img src="{{ asset($logo) }}" alt=""
                                     style="width:100%;height:100%;object-fit:contain">@else<i
                                         class="bi bi-speedometer2"></i>
                                 @endif
                             </span>
-                            <span><b>Admin Panel</b><small>Portfolio CMS</small></span>
-                        </a>
+                            <span><b>Admin Panel</b><small>Portfolio CMS</small></span></a>
                         <button class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
                             data-bs-target="#side" aria-label="Close"></button>
                     </div>
                     <nav>
                         <div class="sb-group">Overview</div>
-                        <a class="sb-link {{ $on('/admin') ? 'on' : '' }}" href="/admin"><i
-                                class="bi bi-grid-1x2"></i>Dashboard</a>
-                        <a class="sb-link {{ $on('/admin/settings') ? 'on' : '' }}" href="/admin/settings"><i
-                                class="bi bi-person-gear"></i>Profile &amp; Settings</a>
-                        <a class="sb-link {{ $on('/admin/media') ? 'on' : '' }}" href="/admin/media"><i
-                                class="bi bi-images"></i>Media library</a>
+                        @if ($can('content'))
+                            <a class="sb-link {{ $on('/admin') ? 'on' : '' }}" href="/admin"><i
+                                    class="bi bi-grid-1x2"></i>Dashboard</a>
+                        @endif
+                        @if ($can('settings'))
+                            <a class="sb-link {{ $on('/admin/settings') ? 'on' : '' }}" href="/admin/settings"><i
+                                    class="bi bi-person-gear"></i>Profile &amp; Settings</a>
+                        @endif
+                        @if ($can('media'))
+                            <a class="sb-link {{ $on('/admin/media') ? 'on' : '' }}" href="/admin/media"><i
+                                    class="bi bi-images"></i>Media library</a>
+                        @endif
                         @foreach ($groups as $g => $keys)
-                            <div class="sb-group">{{ $g }}</div>
-                            @foreach ($keys as $k)
-                                <a class="sb-link {{ $on('/admin/' . $k) ? 'on' : '' }}"
-                                    href="/admin/{{ $k }}"><i
-                                        class="bi {{ $ic[$k] }}"></i>{{ config('admin.' . $k . '.label') }}</a>
-                            @endforeach
-                        @endforeach
-                        <div class="sb-group">Inbox</div>
-                        <a class="sb-link {{ $on('/admin/messages') ? 'on' : '' }}" href="/admin/messages"><i
-                                class="bi bi-envelope"></i>Messages @if ($unread)
-                                <span class="badge text-bg-danger">{{ $unread }}</span>
+                            @php $vis = array_values(array_filter($keys, fn ($k) => $can($k === 'posts' ? 'posts.own' : 'content'))); @endphp
+                            @if (count($vis))
+                                <div class="sb-group">{{ $g }}</div>
+                                @foreach ($vis as $k)
+                                    <a class="sb-link {{ $on('/admin/' . $k) ? 'on' : '' }}"
+                                        href="/admin/{{ $k }}"><i
+                                            class="bi {{ $ic[$k] }}"></i>{{ config('admin.' . $k . '.label') }}</a>
+                                @endforeach
                             @endif
-                        </a>
-                        <a class="sb-link {{ $on('/admin/subscribers') ? 'on' : '' }}" href="/admin/subscribers"><i
-                                class="bi bi-people"></i>Subscribers</a>
+                        @endforeach
+                        @if ($can('messages'))
+                            <div class="sb-group">Inbox</div>
+                            <a class="sb-link {{ $on('/admin/messages') ? 'on' : '' }}" href="/admin/messages"><i
+                                    class="bi bi-envelope"></i>Messages @if ($unread)
+                                    <span class="badge text-bg-danger">{{ $unread }}</span>
+                                @endif
+                            </a>
+                            <a class="sb-link {{ $on('/admin/subscribers') ? 'on' : '' }}" href="/admin/subscribers"><i
+                                    class="bi bi-people"></i>Subscribers</a>
+                        @endif
                         <div class="sb-group">Account</div>
                         <a class="sb-link {{ $on('/admin/password') ? 'on' : '' }}" href="/admin/password"><i
                                 class="bi bi-shield-lock"></i>Password</a>
-
                         <a class="sb-link {{ $on('/admin/security') ? 'on' : '' }}" href="/admin/security"><i
                                 class="bi bi-phone"></i>Two-factor (2FA)</a>
-
-                        <a class="sb-link {{ $on('/admin/backup') ? 'on' : '' }}" href="/admin/backup"><i
-                                class="bi bi-cloud-download"></i>Backup</a>
+                        @if ($can('users'))
+                            <a class="sb-link {{ $on('/admin/users') ? 'on' : '' }}" href="/admin/users"><i
+                                    class="bi bi-person-badge"></i>Users &amp; roles</a>
+                        @endif
+                        @if ($can('activity'))
+                            <a class="sb-link {{ $on('/admin/activity') ? 'on' : '' }}" href="/admin/activity"><i
+                                    class="bi bi-clock-history"></i>Activity log</a>
+                        @endif
+                        @if ($can('backup'))
+                            <a class="sb-link {{ $on('/admin/backup') ? 'on' : '' }}" href="/admin/backup"><i
+                                    class="bi bi-cloud-download"></i>Backup</a>
+                        @endif
                     </nav>
                     <div class="sb-foot">
                         <div class="sb-user"><span class="avatar">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
-                            <div class="min-w-0"><b>{{ $user->name }}</b><small>{{ $user->email }}</small></div>
+                            <div class="min-w-0">
+                                <b>{{ $user->name }}</b><small>{{ config('roles.labels')[$user->role] ?? $user->role }}
+                                    · {{ $user->email }}</small>
+                            </div>
                         </div>
                         <div class="d-flex gap-2"><a class="btn btn-outline-light btn-sm flex-fill" href="/"
                                 target="_blank"><i class="bi bi-box-arrow-up-right me-1"></i>Site</a>
@@ -121,18 +142,24 @@
                         aria-label="Open menu"><i class="bi bi-list"></i></button>
                     <div class="crumb">Admin <span>/</span> {{ $crumb }}</div>
                     <div class="ms-auto d-flex align-items-center gap-2">
-                        <a class="bell" href="/admin/messages" aria-label="Messages"><i class="bi bi-bell"></i>
-                            @if ($unread)
-                                <span class="badge rounded-pill text-bg-danger">{{ $unread }}</span>
-                            @endif
-                        </a>
+                        @if ($can('messages'))
+                            <a class="bell" href="/admin/messages" aria-label="Messages"><i class="bi bi-bell"></i>
+                                @if ($unread)
+                                    <span class="badge rounded-pill text-bg-danger">{{ $unread }}</span>
+                                @endif
+                            </a>
+                        @endif
                         <div class="dropdown"><button class="btn btn-primary" data-bs-toggle="dropdown"><i
                                     class="bi bi-plus-lg me-1"></i>New</button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                <li><a class="dropdown-item" href="/admin/projects/create">Project</a></li>
+                                @if ($can('content'))
+                                    <li><a class="dropdown-item" href="/admin/projects/create">Project</a></li>
+                                @endif
                                 <li><a class="dropdown-item" href="/admin/posts/create">Blog post</a></li>
-                                <li><a class="dropdown-item" href="/admin/services/create">Service</a></li>
-                                <li><a class="dropdown-item" href="/admin/experiences/create">Experience</a></li>
+                                @if ($can('content'))
+                                    <li><a class="dropdown-item" href="/admin/services/create">Service</a></li>
+                                    <li><a class="dropdown-item" href="/admin/experiences/create">Experience</a></li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -157,13 +184,6 @@
                 </main>
             </div>
         </div>
-    @else
-        <div class="login-wrap">
-            <div class="w-100" style="max-width:420px">@yield('c')</div>
-        </div>
-    @endauth
-
-    @auth
         <div class="modal fade" id="picker" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -181,6 +201,10 @@
                             data-bs-dismiss="modal">Cancel</button></div>
                 </div>
             </div>
+        </div>
+    @else
+        <div class="login-wrap">
+            <div class="w-100" style="max-width:420px">@yield('c')</div>
         </div>
     @endauth
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

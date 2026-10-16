@@ -12,6 +12,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(['email' => env('ADMIN_EMAIL', 'admin@example.com')], ['name' => 'Admin', 'password' => Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!'))]);
+
+        User::where('email', env('ADMIN_EMAIL', 'admin@example.com'))->update(['role' => 'super_admin']);
+
         $c = config('portfolio');
         $now = now();
         $put = function (string $t, array $rows) use ($now) {
