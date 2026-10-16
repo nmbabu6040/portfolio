@@ -46,6 +46,7 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
     Route::post('security/enable', [AdminController::class, 'securityEnable']);
     Route::post('security/recovery', [AdminController::class, 'securityRecovery']);
     Route::post('security/disable', [AdminController::class, 'securityDisable']);
+    Route::post('security/alerts', [AdminController::class, 'securityAlerts']);
     Route::post('logout', [AdminController::class, 'logout']);
 
     Route::middleware(Perm::class . ':media')->group(function () {

@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Models\{Entry, Post, User};
-use App\Support\Activity;
+use App\Support\{Activity, LoginAlert};
 use Illuminate\Auth\Events\{Login, Logout};
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\{Event, View};
@@ -39,8 +39,8 @@ class AppServiceProvider extends ServiceProvider
             $view->with('faqs', $safe(fn() => $ord(Entry::of('faqs')->newQuery()->where(fn($q) => $q->whereNull('service')->orWhere('service', '')))->get()));
         });
 
-        // activity log: logins and user changes
-        Event::listen(Login::class, fn($e) => Activity::note('login', 'Logged in', null, null, $e->user));
+        // activity log + login alerts
+        Event::listen(Login::class, fn($e) => LoginAlert::handle($e->user));
         Event::listen(Logout::class, fn($e) => $e->user ? Activity::note('logout', 'Logged out', null, null, $e->user) : null);
         User::created(fn($u) => Activity::note('created', 'Created user: ' . $u->email . ' (' . $u->role . ')', 'Users', $u->id));
         User::deleted(fn($u) => Activity::note('deleted', 'Deleted user: ' . $u->email, 'Users', $u->id));

@@ -100,4 +100,5 @@
             })();
         </script>
     @endif
+    @include('admin._alerts')
 @endsection

@@ -217,7 +217,15 @@ class AdminController extends Controller
             $setup = ['secret' => $secret, 'uri' => Totp::uri($secret, $u->email, Setting::map()['name'] ?? config('app.name'))];
         }
         $left = count(json_decode($this->dec($u->two_factor_recovery) ?? '[]', true) ?: []);
-        return view('admin.security', ['enabled' => (bool) $u->two_factor_enabled, 'setup' => $setup, 'left' => $left, 'newCodes' => $r->session()->pull('new_codes')]);
+        return view('admin.security', [
+            'enabled' => (bool) $u->two_factor_enabled,
+            'setup' => $setup,
+            'left' => $left,
+            'newCodes' => $r->session()->pull('new_codes'),
+            'alerts' => (bool) $u->login_alerts,
+            'smtp' => !empty(Setting::map()['mail_host']),
+            'devices' => DB::table('login_devices')->where('user_id', $u->id)->orderByDesc('last_seen_at')->limit(8)->get(),
+        ]);
     }
     public function securityEnable(Request $r)
     {
@@ -568,14 +576,15 @@ class AdminController extends Controller
     {
         $u = $id ? User::findOrFail($id) : null;
         if ($u) abort_unless($this->canManage($u), 403);
+        $self = $u && $u->id === auth()->id();
         $d = $r->validate([
             'name' => 'required|max:100',
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($id)],
-            'role' => ['required', Rule::in(array_keys($this->assignable()))],
+            'role' => $self ? ['nullable'] : ['required', Rule::in(array_keys($this->assignable()))],
             'password' => [$u ? 'nullable' : 'required', 'min:10', 'max:100'],
         ]);
         $active = $r->boolean('active');
-        if ($u && $u->id === auth()->id()) {
+        if ($self) {
             $d['role'] = $u->role;
             $active = true;
         }
@@ -586,7 +595,9 @@ class AdminController extends Controller
         if (!empty($d['password'])) $row['password'] = Hash::make($d['password']);
         if ($u && $r->boolean('reset_2fa')) $row += ['two_factor_enabled' => false, 'two_factor_secret' => null, 'two_factor_recovery' => null, 'two_factor_last' => null];
         if ($u) {
-            if (!empty($d['password']) || !$active || $d['role'] !== $u->role) DB::table('sessions')->where('user_id', $u->id)->delete();
+            if (!empty($d['password']) || !$active || $d['role'] !== $u->role) {
+                DB::table('sessions')->where('user_id', $u->id)->where('id', '!=', session()->getId())->delete();
+            }
             $u->forceFill($row)->save();
         } else {
             (new User)->forceFill($row)->save();
@@ -600,6 +611,7 @@ class AdminController extends Controller
         if ($u->role === 'super_admin' && !$this->otherSuper($u)) return back()->with('err', 'There must be at least one active super admin.');
         DB::table('sessions')->where('user_id', $u->id)->delete();
         $this->q('posts')->where('user_id', $u->id)->update(['user_id' => null]);
+        DB::table('login_devices')->where('user_id', $u->id)->delete();
         $u->delete();
         return back()->with('ok', 'User deleted.');
     }
@@ -614,5 +626,12 @@ class AdminController extends Controller
             'users' => DB::table('activity_logs')->distinct()->orderBy('user_name')->pluck('user_name'),
             'actions' => ['created', 'updated', 'deleted', 'login', 'logout', 'failed', 'backup'],
         ]);
+    }
+
+    public function securityAlerts(Request $r)
+    {
+        $on = $r->boolean('login_alerts');
+        $r->user()->forceFill(['login_alerts' => $on])->save();
+        return back()->with('ok', $on ? 'Login alert emails are ON.' : 'Login alert emails are OFF.');
     }
 }
