@@ -6,7 +6,8 @@
     <div class="acard p-4 mb-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <h2 class="h6 mb-0"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Visitors</h2>
-            <span class="small text-body-secondary">Your own visits while logged in as admin are not counted</span>
+            <span class="small text-body-secondary">% change is compared with the period before. Your own admin visits
+                are not counted.</span>
         </div>
         <div class="row g-3 mb-4">
             @foreach ($traffic['cards'] as $c)
@@ -17,7 +18,12 @@
                                 class="vnum">{{ number_format($c['views']) }}</span><span
                                 class="small text-body-secondary me-2">views</span><span
                                 class="vnum2">{{ number_format($c['visitors']) }}</span><span
-                                class="small text-body-secondary">visitors</span></div>
+                                class="small text-body-secondary">visitors</span>
+                            @if (!is_null($c['delta']))
+                                <span
+                                    class="badge text-bg-{{ $c['delta'] >= 0 ? 'success' : 'danger' }}">{{ $c['delta'] >= 0 ? '+' : '' }}{{ $c['delta'] }}%</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endforeach

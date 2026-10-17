@@ -17,6 +17,7 @@
         <meta property="og:image" content="{{ asset($s['logo']) }}">
     @endif
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ !empty($s['favicon']) ? asset($s['favicon']) : asset('favicon.ico') }}">
     @if (!empty($s['favicon']))
         <link rel="apple-touch-icon" href="{{ asset($s['favicon']) }}">
@@ -118,6 +119,10 @@
                     <a class="btn btn-light btn-lg" href="{{ url('/quote') }}">Get a quote <i
                             class="bi bi-arrow-right ms-1"></i></a>
                     <a class="btn btn-ghost-light btn-lg" href="{{ url('/contact') }}">Contact me</a>
+                    @if (!empty($s['booking_url']))
+                        <a class="btn btn-ghost-light btn-lg" {!! \App\Support\Ui::book($s) !!}><i
+                                class="bi bi-calendar-check me-1"></i>Book a call</a>
+                    @endif
                     @if (!empty($s['cv']))
                         <a class="btn btn-ghost-light btn-lg" href="{{ asset($s['cv']) }}" download><i
                                 class="bi bi-download me-1"></i>Download CV</a>

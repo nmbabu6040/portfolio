@@ -25,6 +25,10 @@
             $unread = $can('messages')
                 ? \App\Models\Entry::of('messages')->newQuery()->where('is_read', 0)->count()
                 : 0;
+            $pending =
+                $can('posts.all') && \Illuminate\Support\Facades\Schema::hasTable('comments')
+                    ? \App\Models\Entry::of('comments')->newQuery()->where('status', 'pending')->count()
+                    : 0;
             $logo = \App\Models\Setting::map()['logo'] ?? null;
             $ic = [
                 'projects' => 'bi-kanban',
@@ -93,6 +97,10 @@
                         @endforeach
                         @if ($can('messages'))
                             <div class="sb-group">Inbox</div>
+                            <a class="sb-link {{ $on('/admin/leads') ? 'on' : '' }}" href="/admin/leads"><i
+                                    class="bi bi-kanban"></i>Leads pipeline</a>
+                            <a class="sb-link {{ $on('/admin/conversions') ? 'on' : '' }}" href="/admin/conversions"><i
+                                    class="bi bi-bullseye"></i>Conversions</a>
                             <a class="sb-link {{ $on('/admin/messages') ? 'on' : '' }}" href="/admin/messages"><i
                                     class="bi bi-envelope"></i>Messages @if ($unread)
                                     <span class="badge text-bg-danger">{{ $unread }}</span>
@@ -100,6 +108,13 @@
                             </a>
                             <a class="sb-link {{ $on('/admin/subscribers') ? 'on' : '' }}" href="/admin/subscribers"><i
                                     class="bi bi-people"></i>Subscribers</a>
+                        @endif
+                        @if ($can('posts.own'))
+                            <a class="sb-link {{ $on('/admin/comments') ? 'on' : '' }}" href="/admin/comments"><i
+                                    class="bi bi-chat-dots"></i>Comments @if ($pending)
+                                    <span class="badge text-bg-warning">{{ $pending }}</span>
+                                @endif
+                            </a>
                         @endif
                         <div class="sb-group">Account</div>
                         <a class="sb-link {{ $on('/admin/password') ? 'on' : '' }}" href="/admin/password"><i
@@ -120,7 +135,8 @@
                         @endif
                     </nav>
                     <div class="sb-foot">
-                        <div class="sb-user"><span class="avatar">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                        <div class="sb-user">
+                            <span class="avatar">{{ strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                             <div class="min-w-0">
                                 <b>{{ $user->name }}</b><small>{{ config('roles.labels')[$user->role] ?? $user->role }}
                                     · {{ $user->email }}</small>

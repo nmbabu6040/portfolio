@@ -10,7 +10,8 @@
         ['Email', 'bi-envelope', "mailto:?subject=$tt&body=$u"],
     ];
 @endphp
-<div class="share">
+<div class="share"
+    @if (!empty($track)) data-track="{{ $track }}" data-token="{{ csrf_token() }}" @endif>
     <span class="share-l">Share this post</span>
     <div class="d-flex flex-wrap gap-2">
         @foreach ($links as [$n, $ic, $href])

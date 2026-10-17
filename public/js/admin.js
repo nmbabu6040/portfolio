@@ -205,3 +205,44 @@ document.querySelectorAll("[data-copyurl]").forEach(function (b) {
         });
     });
 })();
+
+// leads pipeline: drag a card to another column to change its stage
+(function () {
+    var cols = document.querySelectorAll("[data-stage]");
+    if (!cols.length || typeof Sortable === "undefined") return;
+    function recount() {
+        document.querySelectorAll(".bcol").forEach(function (c) {
+            var n = c.querySelector("[data-count]");
+            if (n) n.textContent = c.querySelectorAll(".lcard").length;
+        });
+    }
+    cols.forEach(function (col) {
+        Sortable.create(col, {
+            group: "leads",
+            animation: 150,
+            ghostClass: "drag-ghost",
+            delay: 150,
+            delayOnTouchOnly: true,
+            onAdd: function (e) {
+                fetch("/admin/leads/" + e.item.dataset.id + "/stage", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN":
+                            document.querySelector("meta[name=csrf]").content,
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify({ stage: col.dataset.stage }),
+                })
+                    .then(function (r) {
+                        if (!r.ok) throw 0;
+                        recount();
+                    })
+                    .catch(function () {
+                        alert("Could not move the lead. The page will reload.");
+                        location.reload();
+                    });
+            },
+        });
+    });
+})();

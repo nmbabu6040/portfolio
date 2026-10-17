@@ -26,6 +26,11 @@
                             class="bi bi-arrow-right ms-1"></i></a>
                     <a class="btn btn-ghost btn-lg mt-3"
                         href="{{ url('/contact') }}?subject={{ urlencode($sv->title) }}">Ask a question</a>
+
+                    @if (!empty($s['booking_url']))
+                        <a class="btn btn-ghost btn-lg mt-3" {!! \App\Support\Ui::book($s) !!}><i
+                                class="bi bi-calendar-check me-1"></i>Book a call</a>
+                    @endif
                     @include('sections.faq')
                 </div>
             </div>

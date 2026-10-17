@@ -167,3 +167,101 @@ if (navigator.share)
                 .catch(function () {});
         };
     });
+
+// blog: like button, share counter, reply to a comment
+(function () {
+    document.querySelectorAll("[data-like]").forEach(function (b) {
+        b.addEventListener("click", function () {
+            fetch(b.dataset.like, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": b.dataset.token,
+                    Accept: "application/json",
+                },
+            })
+                .then(function (r) {
+                    return r.json();
+                })
+                .then(function (j) {
+                    b.classList.toggle("on", j.liked);
+                    b.setAttribute("aria-pressed", j.liked);
+                    b.querySelector(".n").textContent = j.count;
+                    b.querySelector("i").className =
+                        "bi " + (j.liked ? "bi-heart-fill" : "bi-heart");
+                })
+                .catch(function () {});
+        });
+    });
+    var box = document.querySelector(".share[data-track]");
+    if (box)
+        box.addEventListener("click", function (e) {
+            if (!e.target.closest(".share-b")) return;
+            var fd = new FormData();
+            fd.append("_token", box.dataset.token);
+            if (navigator.sendBeacon)
+                navigator.sendBeacon(box.dataset.track, fd);
+            var n = document.querySelector("[data-shares]");
+            if (n) n.textContent = (+n.textContent || 0) + 1;
+        });
+    var f = document.getElementById("cform");
+    if (f) {
+        var pid = document.getElementById("parent_id"),
+            note = document.getElementById("creply");
+        document.querySelectorAll("[data-reply]").forEach(function (b) {
+            b.addEventListener("click", function () {
+                pid.value = b.dataset.reply;
+                note.querySelector("b").textContent = b.dataset.name;
+                note.classList.remove("d-none");
+                f.scrollIntoView({ behavior: "smooth", block: "center" });
+                f.querySelector("[name=body]").focus({ preventScroll: true });
+            });
+        });
+        var c = document.querySelector("[data-cancel-reply]");
+        if (c)
+            c.addEventListener("click", function () {
+                pid.value = "";
+                note.classList.add("d-none");
+            });
+    }
+})();
+
+// count clicks on important buttons (WhatsApp, phone, email, quote, book a call, CV)
+(function () {
+    var m = document.querySelector("meta[name=csrf-token]");
+    if (!m || !navigator.sendBeacon) return;
+    function kind(a) {
+        if (a.closest(".share")) return null;
+        if (a.dataset.cta) return a.dataset.cta;
+        var h = a.getAttribute("href") || "";
+        if (
+            /^https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(
+                h,
+            )
+        )
+            return "whatsapp";
+        if (/^tel:/i.test(h)) return "phone";
+        if (/^mailto:/i.test(h)) return "email";
+        if (a.hasAttribute("download")) return "cv";
+        try {
+            var u = new URL(h, location.href);
+            if (u.origin === location.origin && /^\/quote\/?$/.test(u.pathname))
+                return "quote";
+        } catch (e) {}
+        return null;
+    }
+    document.addEventListener(
+        "click",
+        function (e) {
+            var a = e.target.closest && e.target.closest("a[href]");
+            if (!a) return;
+            var k = kind(a);
+            if (!k) return;
+            var fd = new FormData();
+            fd.append("_token", m.content);
+            fd.append("name", k);
+            fd.append("path", location.pathname);
+            navigator.sendBeacon("/cta", fd);
+        },
+        true,
+    );
+})();

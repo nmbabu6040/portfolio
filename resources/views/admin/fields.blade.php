@@ -1,5 +1,13 @@
 @php
     $help = [
+        'booking_url' => 'Your Calendly, Cal.com or Google Calendar appointment link. Must start with https://',
+        'booking_embed' => 'On: the calendar opens inside your site on the /book page. Off: it opens in a new tab',
+        'client' => 'Optional. Only name a client if they agree',
+        'my_role' => 'Your role in this project, for example Designer and developer',
+        'challenge' => 'Case study: what problem did the client have?',
+        'solution' => 'Case study: what did you do? Screenshots can go here',
+        'result' => 'Case study: the real outcome. Do not invent numbers or results',
+        'comments_open' => 'Visitors can comment on this post (comments need your approval first)',
         'tech' => 'Comma separated',
         'features' => 'One per line',
         'areas' => 'Comma separated',
@@ -45,7 +53,7 @@
                 placeholder="{{ data_get($v, $n) ? '•••••••• (saved)' : '' }}">
         @elseif($x[0] == 'check')
             <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
-                    name="{{ $n }}" value="1" @checked(old($n, data_get($v, $n, $n == 'visible')))></div>
+                    name="{{ $n }}" value="1" @checked(old($n, data_get($v, $n, in_array($n, ['visible', 'comments_open']))))></div>
         @elseif($x[0] == 'select')
             <select name="{{ $n }}" class="form-select">
                 @foreach ($x[2] as $c)
@@ -90,7 +98,8 @@
             @if (data_get($v, $n))
                 <small class="text-body-secondary">Current: {{ data_get($v, $n) }}</small>
             @endif
-        @else<input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
+        @else
+            <input name="{{ $n }}" value="{{ old($n, data_get($v, $n, '')) }}" class="form-control">
         @endif
         @if (!empty($help[$n]))
             <div class="form-text">{{ $help[$n] }}</div>

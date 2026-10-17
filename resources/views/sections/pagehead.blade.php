@@ -12,7 +12,7 @@
         </nav>
         <h1 class="phead-t">{{ $title }}</h1>
         @if (!empty($sub))
-            <p class="phead-s">{{ \Illuminate\Support\Str::limit($sub, 150) }}</p>
+            <p class="phead-s">{{ Str::limit($sub, 200) }}</p>
         @endif
     </div>
 </section>

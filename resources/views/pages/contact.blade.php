@@ -27,8 +27,14 @@
                             target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i><span>WhatsApp:
                                 {{ $s['whatsapp'] }}</span></a>
                     @endif
-                    <a class="info" href="{{ url('/quote') }}"><i class="bi bi-receipt"></i><span>Need a price? Request a
-                            quote</span></a>
+                    <a class="info" href="{{ url('/quote') }}">
+                        <i class="bi bi-receipt"></i>
+                        <span>Need a price? Request a quote</span>
+                    </a>
+                    @if (!empty($s['booking_url']))
+                        <a class="info" {!! \App\Support\Ui::book($s) !!}><i class="bi bi-calendar-check"></i><span>Book a free
+                                call</span></a>
+                    @endif
                     <div class="d-flex gap-2 mt-3">
                         @foreach (['linkedin', 'github', 'facebook'] as $k)
                             @if (!empty($s[$k]))
@@ -47,21 +53,23 @@
                             style="position:absolute;left:-9999px">
                         <div class="row g-3">
                             @foreach (['name' => 'Name', 'email' => 'Email', 'phone' => 'Phone', 'subject' => 'Subject'] as $k => $l)
-                                <div class="col-md-6"><label class="form-label"
-                                        for="{{ $k }}">{{ $l }}</label><input
-                                        class="form-control @error($k) is-invalid @enderror" id="{{ $k }}"
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ $k }}">{{ $l }}</label>
+                                    <input class="form-control @error($k) is-invalid @enderror" id="{{ $k }}"
                                         name="{{ $k }}"
                                         value="{{ old($k, $k == 'subject' ? request('subject') : '') }}"
                                         @if ($k == 'email') type="email" @endif>
                                     <div class="invalid-feedback">{{ $errors->first($k) }}</div>
                                 </div>
                             @endforeach
-                            <div class="col-12"><label class="form-label" for="message">Message</label>
+                            <div class="col-12">
+                                <label class="form-label" for="message">Message</label>
                                 <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="5">{{ old('message') }}</textarea>
                                 <div class="invalid-feedback">{{ $errors->first('message') }}</div>
                             </div>
-                            <div class="col-12"><button class="btn btn-primary btn-lg">Send Message <i
-                                        class="bi bi-send ms-1"></i></button></div>
+                            <div class="col-12">
+                                <button class="btn btn-primary btn-lg">Send Message <i class="bi bi-send ms-1"></i></button>
+                            </div>
                         </div>
                     </form>
                 </div>

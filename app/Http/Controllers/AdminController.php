@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Entry, Setting, User};
-use App\Support\{Html, Img, MailConfig, Totp};
+use App\Support\{Backup, Html, Img, MailConfig, Totp};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema, Storage};
 use Illuminate\Support\Str;
@@ -33,6 +33,7 @@ class AdminController extends Controller
         'Analytics' => ['ga_id' => ['input', 'nullable|regex:/^G-[A-Z0-9]+$/'], 'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']],
         'Legal' => ['privacy_policy' => ['rich', 'nullable'], 'affiliate_disclosure' => ['rich', 'nullable']],
         'Affiliate' => ['affiliate_domains' => ['textarea', 'nullable|max:1000']],
+        'Booking' => ['booking_url' => ['input', 'nullable|url|starts_with:https://|max:300'], 'booking_embed' => ['check', 'nullable']],
         'Maintenance' => ['maintenance' => ['check', 'nullable'], 'maintenance_message' => ['textarea', 'nullable|max:300']],
         'Email (SMTP)' => [
             'mail_host' => ['input', 'nullable|max:150'],
@@ -256,21 +257,74 @@ class AdminController extends Controller
     // ---------- dashboard ----------
     public function dashboard()
     {
-        if (!auth()->user()->hasPerm('content')) return redirect('/admin/posts');
+        $me = auth()->user();
+        if (!$me->hasPerm('content')) return redirect('/admin/posts');
         $c = fn($t) => $this->q($t);
         try {
             $traffic = $this->traffic();
         } catch (\Throwable $e) {
             $traffic = null;
         }
+        $s = Setting::map();
+        $kpi = [
+            'unread' => $c('messages')->where('is_read', 0)->count(),
+            'quotes' => $c('messages')->where('kind', 'quote')->where('is_read', 0)->count(),
+            'messages' => $c('messages')->count(),
+            'subs' => $c('subscribers')->where('status', 'active')->count(),
+            'subsNew' => $c('subscribers')->where('status', 'active')->where('created_at', '>=', now()->subDays(7))->count(),
+            'posts' => $c('posts')->where('published', 1)->count(),
+            'drafts' => $c('posts')->where('published', 0)->count(),
+        ];
         return view('admin.dashboard', [
-            's' => Setting::map(),
-            'counts' => collect(config('admin'))->map(fn($R, $k) => $c($k)->count()),
-            'n' => ['unread' => $c('messages')->where('is_read', 0)->count(), 'messages' => $c('messages')->count(), 'drafts' => $c('posts')->where('published', 0)->count()],
-            'msgs' => $c('messages')->latest()->limit(5)->get(),
-            'recent' => $c('posts')->latest()->limit(5)->get(),
+            's' => $s,
+            'kpi' => $kpi,
             'traffic' => $traffic,
+            'counts' => collect(config('admin'))->map(fn($R, $k) => $c($k)->count()),
+            'attention' => $this->attention($s, $kpi),
+            'topPosts' => $this->topPosts(),
+            'quotes' => $c('messages')->where('kind', 'quote')->latest()->limit(4)->get(),
+            'msgs' => $c('messages')->where('kind', '!=', 'quote')->latest()->limit(4)->get(),
+            'subsList' => $c('subscribers')->latest()->limit(4)->get(),
+            'leadStats' => $this->leadStats(),
+            'activity' => $me->hasPerm('activity') ? DB::table('activity_logs')->orderByDesc('id')->limit(8)->get() : collect(),
         ]);
+    }
+    private function attention(array $s, array $k): array
+    {
+        $c = fn($t) => $this->q($t);
+        $blank = fn($col) => fn($q) => $q->whereNull($col)->orWhere($col, '');
+        $items = [
+            ['Unread messages', $k['unread'], '/admin/messages', 'bi-envelope'],
+            ['Lead follow-ups due', Schema::hasColumn('messages', 'follow_up') ? $c('messages')->whereNotNull('follow_up')->whereNotIn('stage', ['won', 'lost'])->where('follow_up', '<=', now()->toDateString())->count() : 0, '/admin/leads', 'bi-kanban'],
+            ['Comments waiting for approval', Schema::hasTable('comments') ? $c('comments')->where('status', 'pending')->count() : 0, '/admin/comments', 'bi-chat-dots'],
+            ['Draft blog posts', $k['drafts'], '/admin/posts', 'bi-journal-text'],
+            ['Live posts without a cover image', $c('posts')->where('published', 1)->where($blank('image'))->count(), '/admin/posts', 'bi-image'],
+            ['Live posts without an SEO description', $c('posts')->where('published', 1)->where($blank('seo_description'))->count(), '/admin/posts', 'bi-search'],
+            ['Projects without an image', $c('projects')->where($blank('image'))->count(), '/admin/projects', 'bi-image'],
+            ['Services without page details', $c('services')->where($blank('details'))->count(), '/admin/services', 'bi-grid'],
+            ['Hidden technologies', $c('technologies')->where('visible', 0)->count(), '/admin/technologies', 'bi-eye-slash'],
+        ];
+        foreach ([['photo', 'Profile photo is missing'], ['cv', 'CV is not uploaded'], ['email', 'Contact email is not set'], ['seo_description', 'Home page SEO description is missing']] as [$key, $label]) {
+            if (empty($s[$key])) $items[] = [$label, 1, '/admin/settings', 'bi-person-gear'];
+        }
+        if (!empty($s['maintenance'])) array_unshift($items, ['Maintenance mode is ON, visitors cannot see the site', 1, '/admin/settings', 'bi-cone-striped']);
+        $canSettings = auth()->user()->hasPerm('settings');
+        return array_values(array_filter($items, fn($i) => $i[1] > 0 && ($canSettings || $i[2] !== '/admin/settings')));
+    }
+    private function topPosts(): array
+    {
+        try {
+            $rows = DB::table('page_views')
+                ->where('day', '>=', now()->subDays(29)->toDateString())
+                ->where('path', 'like', '/blog/%')->where('path', 'not like', '/blog/category/%')
+                ->selectRaw('path, count(*) as views, count(distinct visitor) as visitors')
+                ->groupBy('path')->orderByDesc('views')->limit(5)->get();
+        } catch (\Throwable $e) {
+            return [];
+        }
+        $slugs = $rows->map(fn($r) => substr($r->path, 6))->all();
+        $titles = $this->q('posts')->whereIn('slug', $slugs)->pluck('title', 'slug');
+        return $rows->map(fn($r) => ['title' => $titles[substr($r->path, 6)] ?? $r->path, 'views' => $r->views, 'visitors' => $r->visitors])->all();
     }
     private function traffic(): array
     {
@@ -280,7 +334,9 @@ class AdminController extends Controller
         $cards = [];
         foreach ([['Today', 1], ['Last 7 days', 7], ['Last 30 days', 30]] as [$label, $d]) {
             $f = $since($d);
-            $cards[] = ['label' => $label, 'views' => $pv()->where('day', '>=', $f)->count(), 'visitors' => $uniq($f)];
+            $v = $pv()->where('day', '>=', $f)->count();
+            $p = $pv()->whereBetween('day', [$since($d * 2), now()->subDays($d)->toDateString()])->count();
+            $cards[] = ['label' => $label, 'views' => $v, 'visitors' => $uniq($f), 'delta' => $p > 0 ? (int) round(($v - $p) / $p * 100) : null];
         }
         $f14 = $since(14);
         $views = $pv()->where('day', '>=', $f14)->selectRaw('day, count(*) as c')->groupBy('day')->pluck('c', 'day');
@@ -458,35 +514,19 @@ class AdminController extends Controller
     // ---------- backup ----------
     public function backupForm()
     {
-        return view('admin.backup', ['last' => Setting::map()['last_backup'] ?? null]);
+        $s = Setting::map();
+        return view('admin.backup', [
+            's' => $s,
+            'files' => Backup::list(),
+            'smtp' => !empty($s['mail_host']) && !empty($s['email']),
+        ]);
     }
     public function backupDownload()
     {
         abort_unless(class_exists(\ZipArchive::class), 500, 'The PHP zip extension is not enabled.');
-        $pdo = DB::connection()->getPdo();
-        $tables = array_merge(['users', 'settings', 'messages', 'subscribers'], array_keys(config('admin')));
-        $sql = '-- Portfolio backup ' . now()->toDateTimeString() . "\nSET FOREIGN_KEY_CHECKS=0;\n";
-        foreach ($tables as $name) {
-            if (!Schema::hasTable($name)) continue;
-            foreach (DB::table($name)->get() as $row) {
-                $row = (array) $row;
-                $cols = implode(',', array_map(fn($c) => "`$c`", array_keys($row)));
-                $vals = implode(',', array_map(fn($v) => $v === null ? 'NULL' : $pdo->quote((string) $v), $row));
-                $sql .= "INSERT INTO `$name` ($cols) VALUES ($vals);\n";
-            }
-        }
-        $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+        @set_time_limit(300);
         $tmp = tempnam(sys_get_temp_dir(), 'bk');
-        $zip = new \ZipArchive;
-        $zip->open($tmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-        $zip->addFromString('database.sql', $sql);
-        $dir = storage_path('app/public');
-        if (is_dir($dir)) {
-            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)) as $f) {
-                if ($f->isFile()) $zip->addFile($f->getPathname(), 'uploads/' . ltrim(str_replace('\\', '/', substr($f->getPathname(), strlen($dir))), '/'));
-            }
-        }
-        $zip->close();
+        Backup::zip($tmp, true);
         Setting::updateOrCreate(['name' => 'last_backup'], ['value' => now()->format('d M Y, H:i')]);
         \App\Support\Activity::note('backup', 'Downloaded a backup', 'Backup');
         return response()->download($tmp, 'portfolio-backup-' . now()->format('Y-m-d-His') . '.zip')->deleteFileAfterSend(true);
@@ -633,5 +673,152 @@ class AdminController extends Controller
         $on = $r->boolean('login_alerts');
         $r->user()->forceFill(['login_alerts' => $on])->save();
         return back()->with('ok', $on ? 'Login alert emails are ON.' : 'Login alert emails are OFF.');
+    }
+
+    public function comments(Request $r)
+    {
+        $tab = in_array($r->query('tab'), ['pending', 'approved', 'spam']) ? $r->query('tab') : 'pending';
+        $base = fn() => DB::table('comments')->join('posts', 'posts.id', '=', 'comments.post_id')
+            ->when(!auth()->user()->hasPerm('posts.all'), fn($q) => $q->where('posts.user_id', auth()->id()));
+        $counts = [];
+        foreach (['pending', 'approved', 'spam'] as $st) $counts[$st] = $base()->where('comments.status', $st)->count();
+        $items = $base()->where('comments.status', $tab)->orderByDesc('comments.id')
+            ->select('comments.*', 'posts.title as post_title', 'posts.slug as post_slug')->paginate(20)->withQueryString();
+        return view('admin.comments', compact('tab', 'counts', 'items'));
+    }
+    private function commentFor($id)
+    {
+        $c = DB::table('comments')->join('posts', 'posts.id', '=', 'comments.post_id')->where('comments.id', $id)
+            ->select('comments.*', 'posts.user_id as post_owner')->first();
+        abort_unless($c, 404);
+        abort_unless(auth()->user()->hasPerm('posts.all') || $c->post_owner == auth()->id(), 403);
+        return $c;
+    }
+    public function commentStatus(Request $r, $id)
+    {
+        $this->commentFor($id);
+        $r->validate(['status' => 'required|in:approved,pending,spam']);
+        $this->q('comments')->findOrFail($id)->update(['status' => $r->input('status')]);
+        return back()->with('ok', 'Comment updated.');
+    }
+    public function commentReply(Request $r, $id)
+    {
+        $c = $this->commentFor($id);
+        $r->validate(['body' => 'required|min:2|max:2000']);
+        $me = auth()->user();
+        $this->q('comments')->create(['post_id' => $c->post_id, 'parent_id' => $c->parent_id ?: $c->id, 'name' => $me->name, 'email' => $me->email, 'body' => trim($r->input('body')), 'status' => 'approved', 'is_admin' => true, 'user_id' => $me->id]);
+        $this->q('comments')->where('id', $c->id)->where('status', 'pending')->update(['status' => 'approved']);
+        return back()->with('ok', 'Reply posted.');
+    }
+    public function commentDelete($id)
+    {
+        $c = $this->commentFor($id);
+        $this->q('comments')->where('parent_id', $c->id)->delete();
+        $this->q('comments')->findOrFail($id)->delete();
+        return back()->with('ok', 'Comment deleted.');
+    }
+
+
+    public function backupSettings(Request $r)
+    {
+        Setting::updateOrCreate(['name' => 'auto_backup'], ['value' => $r->boolean('auto_backup') ? '1' : '0']);
+        Setting::updateOrCreate(['name' => 'auto_backup_email'], ['value' => $r->boolean('auto_backup_email') ? '1' : '0']);
+        return back()->with('ok', 'Backup settings saved.');
+    }
+    public function backupRun()
+    {
+        abort_unless(class_exists(\ZipArchive::class), 500, 'The PHP zip extension is not enabled.');
+        $r = Backup::run(!empty(Setting::map()['auto_backup_email']), auth()->user()->name . ' (manual)');
+        return back()->with($r['ok'] ? 'ok' : 'err', $r['message']);
+    }
+    public function backupFile(string $name)
+    {
+        $p = Backup::dir() . '/' . $name;
+        abort_unless(is_file($p), 404);
+        return response()->download($p);
+    }
+    public function backupRemove(string $name)
+    {
+        $p = Backup::dir() . '/' . $name;
+        abort_unless(is_file($p), 404);
+        @unlink($p);
+        return back()->with('ok', 'Backup file deleted.');
+    }
+
+
+    private const STAGES = [
+        'new' => 'New',
+        'contacted' => 'Contacted',
+        'quote_sent' => 'Quote sent',
+        'won' => 'Won',
+        'lost' => 'Lost'
+    ];
+
+    public function leads()
+    {
+        return view('admin.leads', ['groups' => $this->q('messages')->orderByDesc('id')->limit(300)->get()->groupBy('stage')]);
+    }
+    public function lead($id)
+    {
+        $m = $this->q('messages')->findOrFail($id);
+        if (!$m->is_read) $this->q('messages')->where('id', $id)->update(['is_read' => 1]);
+        return view('admin.lead', ['m' => $m, 'stages' => self::STAGES]);
+    }
+    public function leadSave(Request $r, $id)
+    {
+        $d = $r->validate([
+            'stage' => ['required', Rule::in(array_keys(self::STAGES))],
+            'deal_value' => 'nullable|integer|min:0|max:999999999999',
+            'follow_up' => 'nullable|date',
+            'notes' => 'nullable|max:5000',
+        ]);
+        $this->q('messages')->findOrFail($id)->update($d);
+        return redirect('/admin/leads/' . $id)->with('ok', 'Lead saved.');
+    }
+    public function leadStage(Request $r, $id)
+    {
+        $r->validate(['stage' => ['required', Rule::in(array_keys(self::STAGES))]]);
+        $this->q('messages')->findOrFail($id)->update(['stage' => $r->input('stage')]);
+        return response()->json(['ok' => true]);
+    }
+    public function conversions(Request $r)
+    {
+        $days = in_array((int) $r->query('days'), [7, 30, 90]) ? (int) $r->query('days') : 30;
+        $from = now()->subDays($days - 1)->toDateString();
+        $leads = fn() => $this->q('messages')->where('created_at', '>=', $from);
+        $cta = DB::table('cta_clicks')->where('day', '>=', $from)->selectRaw('name, count(*) as c')->groupBy('name')->orderByDesc('c')->get();
+        return view('admin.conversions', [
+            'days' => $days,
+            'visitors' => DB::query()->fromSub(DB::table('page_views')->select('day', 'visitor')->where('day', '>=', $from)->groupBy('day', 'visitor'), 'x')->count(),
+            'cta' => $cta,
+            'ctaTotal' => $cta->sum('c'),
+            'leadCount' => $leads()->count(),
+            'wonCount' => $leads()->where('stage', 'won')->count(),
+            'sources' => $leads()->selectRaw("coalesce(source, 'Direct') as src, count(*) as c, sum(case when stage = 'won' then 1 else 0 end) as won")->groupBy('src')->orderByDesc('c')->get(),
+            'landing' => $leads()->whereNotNull('landing')->selectRaw('landing, count(*) as c')->groupBy('landing')->orderByDesc('c')->limit(8)->get(),
+            'ctaPages' => DB::table('cta_clicks')->where('day', '>=', $from)->selectRaw('path, count(*) as c')->groupBy('path')->orderByDesc('c')->limit(8)->get(),
+        ]);
+    }
+    private function leadStats(): ?array
+    {
+        try {
+            $m = fn() => $this->q('messages');
+            $today = now()->toDateString();
+            $since = now()->subDays(29)->toDateString();
+            $leads30 = $m()->where('created_at', '>=', $since)->count();
+            $visitors30 = DB::query()->fromSub(DB::table('page_views')->select('day', 'visitor')->where('day', '>=', $since)->groupBy('day', 'visitor'), 'x')->count();
+            $open = fn() => $m()->whereNotNull('follow_up')->whereNotIn('stage', ['won', 'lost'])->where('follow_up', '<=', $today);
+            return [
+                'stages' => $m()->selectRaw('stage, count(*) as c, coalesce(sum(deal_value), 0) as v')->groupBy('stage')->get()->keyBy('stage'),
+                'leads30' => $leads30,
+                'visitors30' => $visitors30,
+                'rate' => $visitors30 > 0 ? round($leads30 / $visitors30 * 100, 1) : null,
+                'due' => $open()->orderBy('follow_up')->limit(5)->get(),
+                'dueCount' => $open()->count(),
+                'wonMonth' => (int) $m()->where('stage', 'won')->where('updated_at', '>=', now()->startOfMonth())->sum('deal_value'),
+            ];
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

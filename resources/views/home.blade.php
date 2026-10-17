@@ -25,7 +25,7 @@
                     <p class="hero-sub"><span class="visually-hidden">{{ $role }}</span><span class="gt"
                             id="rot" data-words="{{ $role }}"
                             aria-hidden="true">{{ trim(explode('|', $role)[0]) }}</span></p>
-                    <p class="hero-text">{{ Str::limit($intro, 200) }}</p>
+                    <p class="hero-text">{{ \Illuminate\Support\Str::limit($intro, 200) }}</p>
                     <div class="d-flex flex-wrap gap-2 mt-4">
                         <a class="btn btn-primary btn-lg" href="{{ url('/projects') }}">View My Portfolio <i
                                 class="bi bi-arrow-right ms-1"></i></a>
@@ -75,7 +75,7 @@
                 <div class="col-lg-6">
                     <p class="eyebrow">About me</p>
                     <h2 class="sec-title">Business knowledge meets technology</h2>
-                    <p class="text-body-secondary">{{ $about[0] ?? '' }}</p>
+                    <p class="text-body-secondary">{!! Str::limit($about[0] ?? '', 200) !!}</p>
                     <a class="btn btn-primary mt-2" href="{{ url('/about') }}">More about me <i
                             class="bi bi-arrow-right ms-1"></i></a> <a class="btn btn-ghost mt-2"
                         href="{{ url('/experience') }}">My experience</a>

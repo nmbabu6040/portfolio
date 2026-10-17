@@ -17,6 +17,12 @@ return [
             'description' => ['richs', 'nullable'],
             'tech' => ['input', 'nullable|max:255'],
             'features' => ['textarea', 'nullable'],
+            'client' => ['input', 'nullable|max:150'],
+            'year' => ['input', 'nullable|max:10'],
+            'my_role' => ['input', 'nullable|max:150'],
+            'challenge' => ['richs', 'nullable'],
+            'solution' => ['rich', 'nullable'],
+            'result' => ['richs', 'nullable'],
             'details' => ['rich', 'nullable'],
             'demo' => ['input', 'nullable|url'],
             'code' => ['input', 'nullable|url'],
@@ -37,7 +43,8 @@ return [
             'image' => ['file', 'nullable|image|max:2048'],
             'category' => ['category', 'nullable|max:160'],
             'published' => ['check', 'nullable'],
-            'has_affiliate' => ['check', 'nullable']
+            'has_affiliate' => ['check', 'nullable'],
+            'comments_open' => ['check', 'nullable']
         ] + $seo
     ],
 

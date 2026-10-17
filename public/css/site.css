@@ -722,9 +722,9 @@ a {
     margin-bottom: 0.5rem;
 }
 .phead-s {
-    color: #c7d0ea;
-    font-size: 1.1rem;
-    max-width: 680px;
+    color: #c7d0ea !important;
+    font-size: 1.1rem !important;
+    max-width: 680px !important;
     margin: 0;
 }
 .phead .breadcrumb {
@@ -1000,4 +1000,58 @@ picture {
 }
 .rich a {
     text-decoration: underline;
+}
+.like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.like-btn:hover {
+    border-color: var(--ac);
+    color: var(--ac);
+}
+.like-btn.on {
+    color: #e11d48;
+    border-color: #fda4af;
+    background: color-mix(in srgb, #e11d48 8%, var(--surface));
+}
+.cmt {
+    display: flex;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+}
+.cmt-r {
+    margin-left: 46px;
+}
+.cmt .av {
+    flex-shrink: 0;
+}
+.cmt-b {
+    min-width: 0;
+    flex: 1;
+}
+.cmt-t {
+    margin: 4px 0 6px;
+    overflow-wrap: anywhere;
+}
+.cs-b {
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+}
+.cs-b .post-body {
+    font-size: 1rem;
 }

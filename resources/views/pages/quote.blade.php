@@ -5,7 +5,8 @@
     $deadlines = ['', 'As soon as possible', 'Within 2 weeks', 'Within a month', '1 to 3 months', 'Flexible'];
 @endphp
 @section('title', 'Request a Quote | ' . $name)
-@section('desc', 'Tell me about your project and get a quote for web design, development, SEO, digital marketing or
+@section('desc',
+    'Tell me about your project and get a quote for web design, development, SEO, digital marketing or
     graphics work.')
 @section('content')
     @include('sections.pagehead', [
@@ -32,8 +33,14 @@
                             target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i><span>Prefer WhatsApp?
                                 Message me</span></a>
                     @endif
-                    <a class="info" href="{{ url('/contact') }}"><i class="bi bi-chat-dots"></i><span>Just have a
-                            question? Contact me</span></a>
+                    <a class="info" href="{{ url('/contact') }}">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>Just have a question? Contact me</span>
+                    </a>
+                    @if (!empty($s['booking_url']))
+                        <a class="info" {!! \App\Support\Ui::book($s) !!}><i class="bi bi-calendar-check"></i><span>Prefer to talk?
+                                Book a call</span></a>
+                    @endif
                 </div>
                 <div class="col-lg-8">
                     <form method="post" action="{{ url('/quote') }}" class="card p-4" novalidate>@csrf

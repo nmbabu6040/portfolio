@@ -17,6 +17,7 @@ Route::middleware([Maintenance::class, TrackVisit::class])->group(function () {
     Route::get('/services/{slug}', [SiteController::class, 'service']);
     Route::get('/contact', [SiteController::class, 'contactPage']);
     Route::get('/quote', [SiteController::class, 'quotePage']);
+    Route::get('/book', [SiteController::class, 'book']);
     Route::get('/privacy', [SiteController::class, 'privacy']);
     Route::get('/affiliate-disclosure', [SiteController::class, 'affiliate']);
     Route::get('/blog', [SiteController::class, 'blog']);
@@ -27,6 +28,11 @@ Route::middleware([Maintenance::class, TrackVisit::class])->group(function () {
 Route::post('/contact', [SiteController::class, 'contact'])->middleware([Maintenance::class, 'throttle:5,1']);
 Route::post('/quote', [SiteController::class, 'quote'])->middleware([Maintenance::class, 'throttle:5,1']);
 Route::post('/subscribe', [SiteController::class, 'subscribe'])->middleware([Maintenance::class, 'throttle:5,1']);
+
+Route::post('/blog/{slug}/comment', [SiteController::class, 'comment'])->middleware([Maintenance::class, 'throttle:6,1']);
+Route::post('/blog/{slug}/like', [SiteController::class, 'like'])->middleware([Maintenance::class, 'throttle:30,1']);
+Route::post('/blog/{slug}/share', [SiteController::class, 'share'])->middleware([Maintenance::class, 'throttle:30,1']);
+Route::post('/cta', [SiteController::class, 'cta'])->middleware('throttle:60,1');
 Route::get('/unsubscribe/{token}', [SiteController::class, 'unsubscribePage']);
 Route::post('/unsubscribe/{token}', [SiteController::class, 'unsubscribe'])->middleware('throttle:10,1');
 Route::get('/sitemap.xml', [SiteController::class, 'sitemap']);
@@ -64,7 +70,18 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
         Route::post('messages/{id}/read', [AdminController::class, 'read']);
         Route::get('subscribers', [AdminController::class, 'subscribers']);
         Route::get('subscribers/export', [AdminController::class, 'subscribersExport']);
+        Route::get('leads', [AdminController::class, 'leads']);
+        Route::get('leads/{id}', [AdminController::class, 'lead']);
+        Route::post('leads/{id}', [AdminController::class, 'leadSave']);
+        Route::post('leads/{id}/stage', [AdminController::class, 'leadStage']);
+        Route::get('conversions', [AdminController::class, 'conversions']);
         Route::delete('subscribers/{id}', [AdminController::class, 'subscriberDelete']);
+    });
+    Route::middleware(Perm::class . ':posts.own')->group(function () {
+        Route::get('comments', [AdminController::class, 'comments']);
+        Route::post('comments/{id}/status', [AdminController::class, 'commentStatus']);
+        Route::post('comments/{id}/reply', [AdminController::class, 'commentReply']);
+        Route::delete('comments/{id}', [AdminController::class, 'commentDelete']);
     });
     Route::middleware(Perm::class . ':settings')->group(function () {
         Route::get('settings', [AdminController::class, 'settings']);
@@ -74,6 +91,10 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
     Route::middleware(Perm::class . ':backup')->group(function () {
         Route::get('backup', [AdminController::class, 'backupForm']);
         Route::post('backup/download', [AdminController::class, 'backupDownload']);
+        Route::post('backup/settings', [AdminController::class, 'backupSettings']);
+        Route::post('backup/run', [AdminController::class, 'backupRun']);
+        Route::get('backup/file/{name}', [AdminController::class, 'backupFile'])->where('name', 'portfolio-[0-9-]+\.zip');
+        Route::delete('backup/file/{name}', [AdminController::class, 'backupRemove'])->where('name', 'portfolio-[0-9-]+\.zip');
     });
     Route::get('activity', [AdminController::class, 'activity'])->middleware(Perm::class . ':activity');
     Route::middleware(Perm::class . ':users')->group(function () {

@@ -13,8 +13,11 @@
         @else
             <a class="proj-img ph" href="{{ url('/projects/' . $pr->id) }}">Screenshot</a>
         @endif
-        <div class="p-4 d-flex flex-column flex-grow-1"><span
-                class="small text-primary fw-semibold">{{ $pr->category }}</span>
+        <div class="p-4 d-flex flex-column flex-grow-1">
+            <span class="small text-primary fw-semibold">{{ $pr->category }}</span>
+            @if ($pr->challenge)
+                <span class="badge text-bg-warning ms-1">Case study</span>
+            @endif
             <h3 class="h5 mt-1"><a class="text-reset text-decoration-none"
                     href="{{ url('/projects/' . $pr->id) }}">{{ $pr->title }}</a></h3>
             <p class="text-body-secondary small">{{ \Illuminate\Support\Str::limit($pr->description, 110) }}</p>

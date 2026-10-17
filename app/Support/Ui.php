@@ -85,4 +85,12 @@ class Ui
         }
         return $out === '' ? $img : '<picture>' . $out . $img . '</picture>';
     }
+
+    // attributes for a "Book a call" link: opens /book if the calendar is embedded, otherwise the calendar in a new tab
+    public static function book(array $s): string
+    {
+        $u = $s['booking_url'] ?? '';
+        if ($u === '') return '';
+        return !empty($s['booking_embed']) ? ' href="' . e(url('/book')) . '" data-cta="book"' : ' href="' . e($u) . '" target="_blank" rel="noopener noreferrer" data-cta="book"';
+    }
 }
