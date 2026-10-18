@@ -265,3 +265,61 @@ if (navigator.share)
         true,
     );
 })();
+
+// project gallery viewer (images and videos)
+(function () {
+    var dataEl = document.getElementById("gal-data"),
+        modalEl = document.getElementById("gal");
+    if (!dataEl || !modalEl) return;
+    var items = JSON.parse(dataEl.textContent),
+        stage = document.getElementById("gal-stage"),
+        cap = document.getElementById("gal-cap"),
+        cur = 0,
+        modal;
+    if (items.length < 2)
+        modalEl.querySelectorAll(".gal-nav").forEach(function (n) {
+            n.style.display = "none";
+        });
+    function show(i) {
+        cur = (i + items.length) % items.length;
+        var it = items[cur];
+        stage.innerHTML = "";
+        if (it.t === "i") {
+            var im = document.createElement("img");
+            im.src = it.src;
+            im.alt = it.cap || "";
+            stage.appendChild(im);
+        } else {
+            var f = document.createElement("iframe");
+            f.src = it.src;
+            f.title = "Project video";
+            f.allow =
+                "accelerometer; encrypted-media; picture-in-picture; fullscreen";
+            f.allowFullscreen = true;
+            f.referrerPolicy = "strict-origin-when-cross-origin";
+            stage.appendChild(f);
+        }
+        cap.textContent = it.cap || "";
+    }
+    document.querySelectorAll("[data-gal]").forEach(function (b) {
+        b.addEventListener("click", function () {
+            modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            show(+b.dataset.gal);
+            modal.show();
+        });
+    });
+    modalEl.querySelector(".gal-prev").onclick = function () {
+        show(cur - 1);
+    };
+    modalEl.querySelector(".gal-next").onclick = function () {
+        show(cur + 1);
+    };
+    modalEl.addEventListener("hidden.bs.modal", function () {
+        stage.innerHTML = "";
+    });
+    document.addEventListener("keydown", function (e) {
+        if (!modalEl.classList.contains("show")) return;
+        if (e.key === "ArrowLeft") show(cur - 1);
+        if (e.key === "ArrowRight") show(cur + 1);
+    });
+})();

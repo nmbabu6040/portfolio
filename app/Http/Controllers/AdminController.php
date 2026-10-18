@@ -33,6 +33,7 @@ class AdminController extends Controller
         'Analytics' => ['ga_id' => ['input', 'nullable|regex:/^G-[A-Z0-9]+$/'], 'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']],
         'Legal' => ['privacy_policy' => ['rich', 'nullable'], 'affiliate_disclosure' => ['rich', 'nullable']],
         'Affiliate' => ['affiliate_domains' => ['textarea', 'nullable|max:1000']],
+        'Invoices' => ['company_address' => ['textarea', 'nullable|max:500'], 'tax_id' => ['input', 'nullable|max:60'], 'payment_details' => ['textarea', 'nullable|max:1000'], 'default_terms' => ['textarea', 'nullable|max:2000'], 'default_currency' => ['input', 'nullable|max:8'], 'default_tax' => ['input', 'nullable|numeric|min:0|max:100']],
         'Booking' => ['booking_url' => ['input', 'nullable|url|starts_with:https://|max:300'], 'booking_embed' => ['check', 'nullable']],
         'Maintenance' => ['maintenance' => ['check', 'nullable'], 'maintenance_message' => ['textarea', 'nullable|max:300']],
         'Email (SMTP)' => [
@@ -484,6 +485,7 @@ class AdminController extends Controller
         };
         $add('Profile & Settings', 'settings', ['value']);
         $add('Projects', 'projects', ['image', 'details']);
+        $add('Projects', 'project_media', ['path']);
         $add('Blog posts', 'posts', ['image', 'body']);
         $add('Services', 'services', ['details']);
         $add('Testimonials', 'testimonials', ['photo']);
@@ -569,6 +571,7 @@ class AdminController extends Controller
     {
         $this->allow($t);
         $this->mine($t, $id);
+        if ($t === 'projects') DB::table('project_media')->where('project_id', $id)->delete();
         $this->q($t)->findOrFail($id)->delete();
         return back()->with('ok', 'Deleted.');
     }

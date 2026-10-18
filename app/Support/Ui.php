@@ -93,4 +93,20 @@ class Ui
         if ($u === '') return '';
         return !empty($s['booking_embed']) ? ' href="' . e(url('/book')) . '" data-cta="book"' : ' href="' . e($u) . '" target="_blank" rel="noopener noreferrer" data-cta="book"';
     }
+
+    // HTML (from the editor) to clean one-line text, for meta tags, cards and sub-headings
+    public static function plain($html, int $limit = 0): string
+    {
+        $t = preg_replace('/<\/(p|div|li|h[1-6]|blockquote|pre|ul|ol)>|<br\s*\/?>/i', ' ', (string) $html);
+        $t = trim(preg_replace('/[\s\x{00A0}]+/u', ' ', html_entity_decode(strip_tags($t), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        return $limit ? \Illuminate\Support\Str::limit($t, $limit) : $t;
+    }
+    // editor HTML is shown as safe HTML, old plain text is split into paragraphs
+    public static function rich($v): string
+    {
+        $v = (string) $v;
+        if (trim($v) === '') return '';
+        if (strip_tags($v) === $v) return collect(preg_split('/\R{2,}/', trim($v)))->map(fn($p) => '<p>' . nl2br(e(trim($p))) . '</p>')->implode('');
+        return Html::render($v);
+    }
 }

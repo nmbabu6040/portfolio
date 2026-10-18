@@ -3,6 +3,6 @@
         href="{{ url('/services/' . $sv->slug) }}">
         <div class="sic"><i class="bi {{ Ui::icon($sv->icon, $sv->title) }}"></i></div>
         <h3 class="h5 text-reset">{{ $sv->title }}</h3>
-        <p class="text-body-secondary">{{ $sv->description }}</p>
+        <p class="text-body-secondary">{{ Ui::plain($sv->description, 150) }}</p>
         <span class="fw-semibold mt-auto text-primary">Learn more <i class="bi bi-arrow-right"></i></span>
     </a></div>

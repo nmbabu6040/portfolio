@@ -246,3 +246,32 @@ document.querySelectorAll("[data-copyurl]").forEach(function (b) {
         });
     });
 })();
+
+// project gallery: drag to reorder
+(function () {
+    var el = document.getElementById("gal-list");
+    if (!el || typeof Sortable === "undefined") return;
+    Sortable.create(el, {
+        handle: ".gdrag",
+        animation: 150,
+        ghostClass: "drag-ghost",
+        onEnd: function () {
+            var ids = [].map.call(
+                el.querySelectorAll("[data-id]"),
+                function (r) {
+                    return r.dataset.id;
+                },
+            );
+            fetch(el.dataset.order, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN":
+                        document.querySelector("meta[name=csrf]").content,
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ ids: ids }),
+            });
+        },
+    });
+})();

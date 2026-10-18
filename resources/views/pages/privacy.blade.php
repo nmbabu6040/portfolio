@@ -19,6 +19,7 @@
                     <h2>Who I am</h2>
                     <p>This website belongs to {{ $name }}. You can contact me at <a
                             href="mailto:{{ $em }}">{{ $em }}</a>.</p>
+
                     <h2>Information you send me</h2>
                     <p>If you use the contact form, I receive the details you enter: your name, email address, phone number
                         (optional), subject and message. I use them only to reply to you and to follow up on your enquiry.
@@ -51,6 +52,10 @@
                     <p>If you subscribe to email updates, I store your email address and the date you subscribed. I use it
                         only to send you updates from this website, and every email includes a link to unsubscribe. You can
                         also ask me to delete your email address at any time.</p>
+
+                    <h2>Videos</h2>
+                    <p>Some project pages can show videos from YouTube or Vimeo. A video is loaded only after you click it,
+                        and only then does your browser contact YouTube or Vimeo.</p>
 
                     <h2>Visitor statistics</h2>
                     <p>This site counts page views in a simple way to understand which pages are visited. I store the page

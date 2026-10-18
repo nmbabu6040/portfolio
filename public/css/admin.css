@@ -684,3 +684,58 @@ a.row-item:hover {
 .lcard a:hover {
     color: #4f46e5;
 }
+.ggrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+.gitem {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px;
+    background: #fff;
+}
+.gitem img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 6px;
+}
+.gvid {
+    aspect-ratio: 4/3;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    margin-bottom: 6px;
+    text-align: center;
+}
+.gvid i {
+    font-size: 2rem;
+    display: block;
+}
+.gdrag {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 8px;
+    padding: 2px 6px;
+    z-index: 2;
+}
+.gdel-f {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    margin: 0;
+}
+.gdel-f .icon-btn {
+    background: rgba(255, 255, 255, 0.92);
+    width: 30px;
+    height: 30px;
+}

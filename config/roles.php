@@ -21,6 +21,7 @@ return [
         'settings' => ['super_admin', 'admin'],
         'users' => ['super_admin', 'admin'],
         'backup' => ['super_admin'],
+        'documents' => ['super_admin', 'admin'],
         'activity' => ['super_admin', 'admin'],
     ],
 ];

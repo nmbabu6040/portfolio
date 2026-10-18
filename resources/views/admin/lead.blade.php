@@ -34,6 +34,12 @@
                 <a class="btn btn-primary"
                     href="mailto:{{ $m->email }}?subject={{ urlencode('Re: ' . $m->subject) }}"><i
                         class="bi bi-reply me-1"></i>Reply by email</a>
+
+                @if (auth()->user()->hasPerm('documents'))
+                    <a class="btn btn-outline-primary"
+                        href="/admin/documents/create?type=quotation&lead={{ $m->id }}"><i
+                            class="bi bi-file-earmark-text me-1"></i>Create quotation</a>
+                @endif
                 <hr>
                 <h2 class="h6">Where this lead came from</h2>
                 <table class="table table-sm mb-0">

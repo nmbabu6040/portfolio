@@ -1,5 +1,11 @@
 @php
     $help = [
+        'company_address' => 'Shown on quotations and invoices',
+        'tax_id' => 'For example your BIN or tax number. Shown on the PDFs',
+        'payment_details' => 'Bank or mobile payment details, shown on invoices',
+        'default_terms' => 'Default terms for new quotations and invoices',
+        'default_currency' => 'For example BDT or USD. Default is BDT',
+        'default_tax' => 'Default tax percent. Use 0 if you do not charge tax',
         'booking_url' => 'Your Calendly, Cal.com or Google Calendar appointment link. Must start with https://',
         'booking_embed' => 'On: the calendar opens inside your site on the /book page. Off: it opens in a new tab',
         'client' => 'Optional. Only name a client if they agree',

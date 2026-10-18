@@ -13,4 +13,10 @@
             <a class="btn btn-outline-secondary" href="/admin/{{ $t }}">Cancel</a>
         </div>
     </form>
+
+    @if ($t == 'projects' && $item)
+        @include('admin.gallery', ['item' => $item])
+    @elseif($t == 'projects')
+        <p class="small text-body-secondary mt-3">Save the project first, then you can add gallery images and videos.</p>
+    @endif
 @endsection

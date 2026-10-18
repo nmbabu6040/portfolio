@@ -101,6 +101,10 @@
                                     class="bi bi-kanban"></i>Leads pipeline</a>
                             <a class="sb-link {{ $on('/admin/conversions') ? 'on' : '' }}" href="/admin/conversions"><i
                                     class="bi bi-bullseye"></i>Conversions</a>
+                            @if ($can('documents'))
+                                <a class="sb-link {{ $on('/admin/documents') ? 'on' : '' }}" href="/admin/documents"><i
+                                        class="bi bi-file-earmark-text"></i>Quotes &amp; invoices</a>
+                            @endif
                             <a class="sb-link {{ $on('/admin/messages') ? 'on' : '' }}" href="/admin/messages"><i
                                     class="bi bi-envelope"></i>Messages @if ($unread)
                                     <span class="badge text-bg-danger">{{ $unread }}</span>

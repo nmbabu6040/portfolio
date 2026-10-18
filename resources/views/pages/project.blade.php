@@ -2,7 +2,7 @@
 @use('App\Support\Ui')
 @php $name = $s['name'] ?? $p['name']; @endphp
 @section('title', $pr->seo_title ?: $pr->title . ' | ' . $name)
-@section('desc', $pr->seo_description ?: \Illuminate\Support\Str::limit(strip_tags((string) $pr->description), 155))
+@section('desc', $pr->seo_description ?: Ui::plain($pr->description, 155))
 @if ($pr->image)
     @section('og_image', asset($pr->image))
 @endif
@@ -18,7 +18,7 @@
                 <div class="col-lg-8">
                     @if ($pr->image)
                         <button class="btn p-0 border-0 mb-4 w-100" data-lb="{{ asset($pr->image) }}"
-                            aria-label="Enlarge screenshot">{!! \App\Support\Ui::pic(
+                            aria-label="Enlarge screenshot">{!! Ui::pic(
                                 $pr->image,
                                 $pr->title . ' screenshot',
                                 '(min-width:992px) 760px, 100vw',
@@ -26,7 +26,7 @@
                                 'high',
                             ) !!}</button>
                     @endif
-                    <div class="fs-5 text-body-secondary rich">{!! \App\Support\Html::render((string) $pr->description) !!}</div>
+                    <div class="fs-5 text-body-secondary rich">{!! Ui::rich($pr->description) !!}</div>
                     @if ($pr->challenge || $pr->solution || $pr->result)
                         <div class="mt-4">
                             @foreach ([['The challenge', 'bi-exclamation-diamond', $pr->challenge], ['What I did', 'bi-tools', $pr->solution], ['The result', 'bi-graph-up-arrow', $pr->result]] as [$ct, $ci, $cv])
@@ -35,14 +35,14 @@
                                         <h2 class="h5 mb-3"><i
                                                 class="bi {{ $ci }} me-2 text-primary"></i>{{ $ct }}
                                         </h2>
-                                        <div class="post-body">{!! \App\Support\Html::render((string) $cv) !!}</div>
+                                        <div class="post-body">{!! Ui::rich($cv) !!}</div>
                                     </div>
                                 @endif
                             @endforeach
                         </div>
                     @endif
                     @if ($pr->details)
-                        <div class="post-body mt-4">{!! \App\Support\Html::render($pr->details) !!}</div>
+                        <div class="post-body mt-4">{!! Ui::rich($pr->details) !!}</div>
                     @endif
                     @if ($pr->features)
                         <h2 class="h5 mt-4">Features</h2>
@@ -52,6 +52,7 @@
                             @endforeach
                         </ul>
                     @endif
+                    @include('sections.gallery', ['project' => $pr])
                 </div>
                 <aside class="col-lg-4">
                     <div class="card p-4 mb-3">
@@ -88,7 +89,7 @@
                             steps.</p>
                         <div class="d-grid gap-2"><a class="btn btn-primary" href="{{ url('/quote') }}">Request a quote</a>
                             @if (!empty($s['booking_url']))
-                                <a class="btn btn-ghost" {!! \App\Support\Ui::book($s) !!}><i
+                                <a class="btn btn-ghost" {!! Ui::book($s) !!}><i
                                         class="bi bi-calendar-check me-1"></i>Book a call</a>
                             @endif
                         </div>

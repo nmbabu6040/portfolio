@@ -4,12 +4,12 @@
     $name = $s['name'] ?? $p['name'];
     $role = $s['role'] ?? $p['role'];
     $intro = $s['intro'] ?? $p['intro'];
-    $about = isset($s['about']) ? preg_split('/\R{2,}/', $s['about']) : $p['about'];
+    $aboutText = $s['about'] ?? implode("\n\n", $p['about']);
     $ini = Ui::initials($name);
     $pillIcons = ['bi-briefcase', 'bi-graph-up-arrow', 'bi-cpu', 'bi-globe2'];
 @endphp
 @section('title', $s['seo_title'] ?? $name . ' | Sales & Marketing Professional | Web Developer & Digital Marketing')
-@section('desc', $s['seo_description'] ?? $intro)
+@section('desc', $s['seo_description'] ?? Ui::plain($intro, 160))
 @push('head')
     <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@graph' => [['@type' => 'Person', 'name' => $name, 'jobTitle' => $role, 'url' => url('/'), 'sameAs' => array_values(array_filter([$s['linkedin'] ?? null, $s['github'] ?? null, $s['facebook'] ?? null]))], ['@type' => 'WebSite', 'name' => $name, 'url' => url('/')]]], JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 @endpush
@@ -25,12 +25,12 @@
                     <p class="hero-sub"><span class="visually-hidden">{{ $role }}</span><span class="gt"
                             id="rot" data-words="{{ $role }}"
                             aria-hidden="true">{{ trim(explode('|', $role)[0]) }}</span></p>
-                    <p class="hero-text">{{ \Illuminate\Support\Str::limit($intro, 200) }}</p>
+                    <div class="hero-text">{!! Ui::rich($intro) !!}</div>
                     <div class="d-flex flex-wrap gap-2 mt-4">
                         <a class="btn btn-primary btn-lg" href="{{ url('/projects') }}">View My Portfolio <i
                                 class="bi bi-arrow-right ms-1"></i></a>
-                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/about') }}">About Me</a>
-                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/contact') }}">Contact Me</a>
+                        <a class="btn btn-ghost-light btn-lg" href="{{ url('/about') }}">About Me</a><a
+                            class="btn btn-ghost-light btn-lg" href="{{ url('/contact') }}">Contact Me</a>
                         @if (!empty($s['cv']))
                             <a class="btn btn-ghost-light btn-lg" href="{{ asset($s['cv']) }}" download><i
                                     class="bi bi-download me-1"></i>CV</a>
@@ -43,11 +43,9 @@
                 <div class="col-lg-5 order-1 order-lg-2 text-center">
                     <div class="frame">
                         @if (!empty($s['photo']))
-                            {!! \App\Support\Ui::pic($s['photo'], 'Portrait of ' . $name, '(max-width:487px) 78vw, 380px', '', 'high') !!}
-                        @else
-                            <div class="frame-ph">{{ $ini }}</div>
+                            {!! Ui::pic($s['photo'], 'Portrait of ' . $name, '(max-width:487px) 78vw, 380px', '', 'high') !!}@else<div class="frame-ph">{{ $ini }}</div>
                         @endif
-                        <div class="float-chip"><i class="bi bi-trophy"></i> 18+ years in Sales &amp; Marketing</div>
+                        <div class="float-chip"><i class="bi bi-trophy"></i> 17+ years in Sales &amp; Marketing</div>
                     </div>
                 </div>
             </div>
@@ -75,7 +73,7 @@
                 <div class="col-lg-6">
                     <p class="eyebrow">About me</p>
                     <h2 class="sec-title">Business knowledge meets technology</h2>
-                    <p class="text-body-secondary">{!! Str::limit($about[0] ?? '', 200) !!}</p>
+                    <p class="text-body-secondary">{{ Ui::plain($aboutText, 280) }}</p>
                     <a class="btn btn-primary mt-2" href="{{ url('/about') }}">More about me <i
                             class="bi bi-arrow-right ms-1"></i></a> <a class="btn btn-ghost mt-2"
                         href="{{ url('/experience') }}">My experience</a>

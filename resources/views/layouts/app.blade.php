@@ -144,7 +144,7 @@
                             @endunless
                         </a>
                     </div>
-                    <p>{{ \Illuminate\Support\Str::limit($s['intro'] ?? config('portfolio.intro'), 170) }}</p>
+                    <p>{{ \App\Support\Ui::plain($s['intro'] ?? config('portfolio.intro'), 170) }}</p>
                     <form method="post" action="{{ url('/subscribe') }}" class="nl mt-3" id="nl">@csrf
                         <label class="small d-block mb-1" for="nl-email">Get new posts by email</label>
                         <div class="input-group"><input id="nl-email" type="email" name="email"
@@ -215,14 +215,18 @@
             </div>
         </div>
         <div class="foot-bar mt-4 pt-3 d-flex flex-wrap justify-content-between gap-2 small">
-            <span>© {{ date('Y') }} {{ $nm }}. All rights reserved.</span>
-            <span><a href="{{ url('/blog') }}">Blog</a> · <a href="{{ url('/privacy') }}">Privacy</a>
-                @if (!empty($s['affiliate_domains']))
-                    ·
-                    <a href="{{ url('/affiliate-disclosure') }}">Affiliate disclosure</a>
-                @endif · <a href="{{ url('/sitemap.xml') }}">Sitemap</a> · Sales &amp;
-                Marketing since 2007
-            </span>
+            <div class="container pb-2">
+                <div class="d-flex justify-content-between">
+                    <span>© {{ date('Y') }} {{ $nm }}. All rights reserved.</span>
+                    <span><a href="{{ url('/blog') }}">Blog</a> · <a href="{{ url('/privacy') }}">Privacy</a>
+                        @if (!empty($s['affiliate_domains']))
+                            ·
+                            <a href="{{ url('/affiliate-disclosure') }}">Affiliate disclosure</a>
+                        @endif · <a href="{{ url('/sitemap.xml') }}">Sitemap</a> · Sales &amp;
+                        Marketing since 2007
+                    </span>
+                </div>
+            </div>
         </div>
         </div>
     </footer>

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\{SiteController, AdminController};
+use App\Http\Controllers\{SiteController, AdminController, DocumentController, GalleryController};
 use App\Http\Middleware\{Maintenance, Perm, TrackVisit};
 use Illuminate\Support\Facades\Route;
 
@@ -105,6 +105,25 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
         Route::post('users/{id}', [AdminController::class, 'userSave']);
         Route::delete('users/{id}', [AdminController::class, 'userDelete']);
     });
+
+    Route::middleware(Perm::class . ':documents')->group(function () {
+        Route::get('documents', [DocumentController::class, 'index']);
+        Route::get('documents/create', [DocumentController::class, 'form']);
+        Route::get('documents/{id}/edit', [DocumentController::class, 'form']);
+        Route::get('documents/{id}/pdf', [DocumentController::class, 'pdf']);
+        Route::post('documents', [DocumentController::class, 'save']);
+        Route::post('documents/{id}', [DocumentController::class, 'save']);
+        Route::post('documents/{id}/send', [DocumentController::class, 'send']);
+        Route::post('documents/{id}/convert', [DocumentController::class, 'convert']);
+        Route::post('documents/{id}/duplicate', [DocumentController::class, 'duplicate']);
+        Route::post('documents/{id}/status', [DocumentController::class, 'status']);
+        Route::delete('documents/{id}', [DocumentController::class, 'destroy']);
+    });
+
+    Route::post('projects/{id}/gallery', [GalleryController::class, 'add']);
+    Route::post('projects/{id}/gallery/order', [GalleryController::class, 'order']);
+    Route::post('gallery/{mid}/caption', [GalleryController::class, 'caption']);
+    Route::delete('gallery/{mid}', [GalleryController::class, 'destroy']);
 
     Route::get('{t}', [AdminController::class, 'index']);
     Route::get('{t}/create', [AdminController::class, 'form']);
