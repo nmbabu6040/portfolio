@@ -57,6 +57,13 @@
                     <p>Some project pages can show videos from YouTube or Vimeo. A video is loaded only after you click it,
                         and only then does your browser contact YouTube or Vimeo.</p>
 
+                    @if (!empty($s['turnstile_site']))
+                        <h2>Spam protection</h2>
+                        <p>The contact, quote, comment and newsletter forms are protected by Cloudflare Turnstile. When you
+                            start using a form, your browser loads a small script from Cloudflare, which checks that you are
+                            a real visitor. Cloudflare may receive your IP address and browser details for this check.</p>
+                    @endif
+
                     <h2>Visitor statistics</h2>
                     <p>This site counts page views in a simple way to understand which pages are visited. I store the page
                         address, the date, the device type (desktop, tablet or mobile), the referring website and a short

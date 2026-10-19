@@ -84,6 +84,10 @@
                             <a class="sb-link {{ $on('/admin/media') ? 'on' : '' }}" href="/admin/media"><i
                                     class="bi bi-images"></i>Media library</a>
                         @endif
+                        @if ($can('content'))
+                            <a class="sb-link {{ $on('/admin/redirects') ? 'on' : '' }}" href="/admin/redirects"><i
+                                    class="bi bi-signpost-split"></i>Redirects &amp; 404</a>
+                        @endif
                         @foreach ($groups as $g => $keys)
                             @php $vis = array_values(array_filter($keys, fn ($k) => $can($k === 'posts' ? 'posts.own' : 'content'))); @endphp
                             @if (count($vis))
@@ -125,6 +129,10 @@
                                 class="bi bi-shield-lock"></i>Password</a>
                         <a class="sb-link {{ $on('/admin/security') ? 'on' : '' }}" href="/admin/security"><i
                                 class="bi bi-phone"></i>Two-factor (2FA)</a>
+                        @if ($can('settings'))
+                            <a class="sb-link {{ $on('/admin/health') ? 'on' : '' }}" href="/admin/health"><i
+                                    class="bi bi-heart-pulse"></i>Site health</a>
+                        @endif
                         @if ($can('users'))
                             <a class="sb-link {{ $on('/admin/users') ? 'on' : '' }}" href="/admin/users"><i
                                     class="bi bi-person-badge"></i>Users &amp; roles</a>

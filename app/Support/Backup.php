@@ -15,7 +15,7 @@ class Backup
     }
     public static function tables(): array
     {
-        return array_merge(['users', 'settings', 'messages', 'subscribers', 'comments', 'post_likes', 'documents', 'document_items', 'project_media'], array_keys(config('admin')));
+        return array_merge(['users', 'settings', 'messages', 'subscribers', 'comments', 'post_likes', 'documents', 'document_items', 'project_media', 'redirects'], array_keys(config('admin')));
     }
     public static function sql(array $skip = []): string
     {

@@ -45,7 +45,7 @@
                         @if (!empty($s['photo']))
                             {!! Ui::pic($s['photo'], 'Portrait of ' . $name, '(max-width:487px) 78vw, 380px', '', 'high') !!}@else<div class="frame-ph">{{ $ini }}</div>
                         @endif
-                        <div class="float-chip"><i class="bi bi-trophy"></i> 17+ years in Sales &amp; Marketing</div>
+                        <div class="float-chip"><i class="bi bi-trophy"></i> 18+ years in Sales &amp; Marketing</div>
                     </div>
                 </div>
             </div>

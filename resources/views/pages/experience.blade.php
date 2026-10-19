@@ -2,8 +2,7 @@
 @use('App\Support\Ui')
 @php $name = $s['name'] ?? $p['name']; @endphp
 @section('title', 'Experience | ' . $name)
-@section('desc',
-    'Professional experience in Sales & Marketing since 2007, with education, certifications and
+@section('desc', 'Professional experience in Sales & Marketing since 2007, with education, certifications and
     achievements.')
 @section('content')
     @include('sections.pagehead', [
@@ -14,6 +13,15 @@
     <section class="sec">
         <div class="container">
             <div style="max-width:820px">
+                @if (!empty($s['resume_enabled']))
+                    <div class="d-flex flex-wrap gap-2 mb-4"><a class="btn btn-primary" href="{{ url('/resume') }}"><i
+                                class="bi bi-file-earmark-person me-1"></i>View resume</a>
+                        @if (class_exists(\Dompdf\Dompdf::class))
+                            <a class="btn btn-ghost" href="{{ url('/resume.pdf') }}" data-cta="cv"><i
+                                    class="bi bi-download me-1"></i>Download PDF</a>
+                        @endif
+                    </div>
+                @endif
                 @foreach ($exp as $e)
                     <div class="tl-item rv">
                         <div class="card p-4">
@@ -40,12 +48,12 @@
                 <p class="eyebrow">Background</p>
                 <h2 class="sec-title">Education, certifications &amp; achievements</h2>
                 <div class="row g-3 mt-2">
-                    @foreach ($edu as $i => $e)
+                    @foreach ($edu as $e)
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 p-4 rv"><i class="bi bi-mortarboard fs-3 text-primary"></i>
                                 <h3 class="h6 mt-2">{{ $e->title }}</h3>
                                 <p class="small text-body-secondary mb-1">{{ $e->institution }} {{ $e->period }}</p>
-                                <div class="small text-body-secondary rich">{!! \App\Support\Html::render((string) $e->details) !!}</div>
+                                <div class="small text-body-secondary rich">{!! Ui::rich($e->details) !!}</div>
                             </div>
                         </div>
                     @endforeach
@@ -66,7 +74,7 @@
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100 p-4 rv"><i class="bi bi-award fs-3 text-warning"></i>
                                 <h3 class="h6 mt-2">{{ $e->title }} {{ $e->year }}</h3>
-                                <div class="small text-body-secondary rich">{!! \App\Support\Html::render((string) $e->details) !!}</div>
+                                <div class="small text-body-secondary rich">{!! Ui::rich($e->details) !!}</div>
                             </div>
                         </div>
                     @endforeach

@@ -15,6 +15,9 @@
                     <div class="text-body-secondary fs-5 rich">{!! \App\Support\Ui::rich($aboutText) !!}</div>
                     <div class="d-flex flex-wrap gap-2 mt-3"><a class="btn btn-primary" href="{{ url('/experience') }}">View
                             experience</a><a class="btn btn-ghost" href="{{ url('/contact') }}">Get in touch</a>
+                        @if (!empty($s['resume_enabled']))
+                            <a class="btn btn-ghost" href="{{ url('/resume') }}">Resume</a>
+                        @endif
                         @if (!empty($s['cv']))
                             <a class="btn btn-ghost" href="{{ asset($s['cv']) }}" download>Download CV</a>
                         @endif

@@ -323,3 +323,37 @@ if (navigator.share)
         if (e.key === "ArrowRight") show(cur + 1);
     });
 })();
+
+// CAPTCHA (Cloudflare Turnstile): the widget is added to the public forms, and its script loads only when someone uses a form
+(function () {
+    var key = window.TS_KEY;
+    if (!key) return;
+    var forms = [].filter.call(
+        document.querySelectorAll("form[method=post]"),
+        function (f) {
+            return /\/(contact|quote|subscribe)$|\/comment$/.test(
+                f.getAttribute("action") || "",
+            );
+        },
+    );
+    if (!forms.length) return;
+    var loaded = false;
+    function load() {
+        if (loaded) return;
+        loaded = true;
+        var s = document.createElement("script");
+        s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+        s.async = true;
+        s.defer = true;
+        document.head.appendChild(s);
+    }
+    forms.forEach(function (f) {
+        var d = document.createElement("div");
+        d.className = "cf-turnstile mt-3";
+        d.setAttribute("data-sitekey", key);
+        d.setAttribute("data-appearance", "interaction-only");
+        f.appendChild(d);
+        f.addEventListener("focusin", load, { once: true });
+        f.addEventListener("pointerdown", load, { once: true });
+    });
+})();

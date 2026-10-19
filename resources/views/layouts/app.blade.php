@@ -30,6 +30,11 @@
             window.GA_ID = '{{ $s['ga_id'] }}';
         </script>
     @endif
+    @if (!empty($s['turnstile_site']) && !empty($s['turnstile_secret']))
+        <script>
+            window.TS_KEY = '{{ $s['turnstile_site'] }}';
+        </script>
+    @endif
     @stack('head')
     <script>
         try {
@@ -64,6 +69,10 @@
 
 <body>
     <div id="prog"></div>
+
+    @if (session('captcha_err'))
+        <div class="alert alert-warning text-center rounded-0 mb-0" role="alert">{{ session('captcha_err') }}</div>
+    @endif
 
     @if (!empty($s['maintenance']) && auth()->check())
         <div class="mt-bar">

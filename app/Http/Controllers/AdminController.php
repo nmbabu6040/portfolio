@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{Entry, Setting, User};
 use App\Support\{Backup, Html, Img, MailConfig, Totp};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, Schema, Storage};
+use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, RateLimiter, Schema, Storage};
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -33,7 +33,19 @@ class AdminController extends Controller
         'Analytics' => ['ga_id' => ['input', 'nullable|regex:/^G-[A-Z0-9]+$/'], 'gsc_verify' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]+$/']],
         'Legal' => ['privacy_policy' => ['rich', 'nullable'], 'affiliate_disclosure' => ['rich', 'nullable']],
         'Affiliate' => ['affiliate_domains' => ['textarea', 'nullable|max:1000']],
-        'Invoices' => ['company_address' => ['textarea', 'nullable|max:500'], 'tax_id' => ['input', 'nullable|max:60'], 'payment_details' => ['textarea', 'nullable|max:1000'], 'default_terms' => ['textarea', 'nullable|max:2000'], 'default_currency' => ['input', 'nullable|max:8'], 'default_tax' => ['input', 'nullable|numeric|min:0|max:100']],
+        'Invoices' => [
+            'company_address' => ['textarea', 'nullable|max:500'],
+            'tax_id' => ['input', 'nullable|max:60'],
+            'payment_details' => ['textarea', 'nullable|max:1000'],
+            'default_terms' => ['textarea', 'nullable|max:2000'],
+            'default_currency' => ['input', 'nullable|max:8'],
+            'default_tax' => ['input', 'nullable|numeric|min:0|max:100']
+        ],
+        'CAPTCHA' => [
+            'turnstile_site' => ['input', 'nullable|regex:/^[A-Za-z0-9_-]{10,100}$/'],
+            'turnstile_secret' => ['password', 'nullable|max:200']
+        ],
+        'Resume' => ['resume_enabled' => ['check', 'nullable'], 'resume_phone' => ['check', 'nullable'], 'resume_location' => ['input', 'nullable|max:100'], 'resume_summary' => ['textarea', 'nullable|max:900'], 'resume_projects' => ['input', 'nullable|integer|min:0|max:8']],
         'Booking' => ['booking_url' => ['input', 'nullable|url|starts_with:https://|max:300'], 'booking_embed' => ['check', 'nullable']],
         'Maintenance' => ['maintenance' => ['check', 'nullable'], 'maintenance_message' => ['textarea', 'nullable|max:300']],
         'Email (SMTP)' => [
@@ -96,12 +108,19 @@ class AdminController extends Controller
     public function login(Request $r)
     {
         $c = $r->validate(['email' => 'required|email', 'password' => 'required']);
+        $key = 'login|' . strtolower($c['email']) . '|' . $r->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $m = max(1, (int) ceil(RateLimiter::availableIn($key) / 60));
+            return back()->withErrors(['email' => "Too many wrong attempts. Please try again in $m minute(s)."]);
+        }
         if (!Auth::validate($c)) {
+            RateLimiter::hit($key, 900);
             \App\Support\Activity::note('failed', 'Failed login for ' . $c['email'], null, null, (object) ['id' => null, 'name' => 'Visitor']);
             return back()->withErrors(['email' => 'Invalid login.']);
         }
         $u = User::where('email', $c['email'])->first();
         if (!$u->hasPerm('dashboard')) return back()->withErrors(['email' => 'This account does not have access to the admin panel.']);
+        RateLimiter::clear($key);
         if ($u->two_factor_enabled) {
             $r->session()->put('2fa', ['id' => $u->id, 'at' => now()->timestamp]);
             $r->session()->forget('2fa_fail');
@@ -296,6 +315,7 @@ class AdminController extends Controller
         $blank = fn($col) => fn($q) => $q->whereNull($col)->orWhere($col, '');
         $items = [
             ['Unread messages', $k['unread'], '/admin/messages', 'bi-envelope'],
+            ['Broken links (404) seen this week', Schema::hasTable('not_found_log') ? DB::table('not_found_log')->where('is_bot', 0)->where('ignored', 0)->where('last_seen', '>=', now()->subDays(7))->count() : 0, '/admin/redirects?tab=errors', 'bi-link-45deg'],
             ['Lead follow-ups due', Schema::hasColumn('messages', 'follow_up') ? $c('messages')->whereNotNull('follow_up')->whereNotIn('stage', ['won', 'lost'])->where('follow_up', '<=', now()->toDateString())->count() : 0, '/admin/leads', 'bi-kanban'],
             ['Comments waiting for approval', Schema::hasTable('comments') ? $c('comments')->where('status', 'pending')->count() : 0, '/admin/comments', 'bi-chat-dots'],
             ['Draft blog posts', $k['drafts'], '/admin/posts', 'bi-journal-text'],

@@ -1,5 +1,12 @@
 @php
     $help = [
+        'resume_enabled' => 'On: /resume is public. Off: only logged-in admins can preview it',
+        'resume_phone' => 'Show your phone number on the resume',
+        'resume_location' => 'For example Dhaka, Bangladesh',
+        'resume_summary' => 'A short professional summary. Leave empty to use your Intro text',
+        'resume_projects' => 'How many recent projects to list, from 0 to 8. Default is 4',
+        'turnstile_site' => 'From Cloudflare > Turnstile. Clear this box to turn CAPTCHA off',
+        'turnstile_secret' => 'Stored encrypted. Both keys are needed. Leave empty to keep the saved one',
         'company_address' => 'Shown on quotations and invoices',
         'tax_id' => 'For example your BIN or tax number. Shown on the PDFs',
         'payment_details' => 'Bank or mobile payment details, shown on invoices',

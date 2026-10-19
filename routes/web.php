@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\{SiteController, AdminController, DocumentController, GalleryController};
-use App\Http\Middleware\{Maintenance, Perm, TrackVisit};
+use App\Http\Controllers\{SiteController, AdminController, DocumentController, GalleryController, HealthController, RedirectController, ResumeController};
+use App\Http\Middleware\{CaptchaCheck, Maintenance, Perm, TrackVisit};
 use Illuminate\Support\Facades\Route;
 
 Route::pattern('t', implode('|', array_merge(array_keys(config('admin')), ['messages'])));
@@ -18,6 +18,7 @@ Route::middleware([Maintenance::class, TrackVisit::class])->group(function () {
     Route::get('/contact', [SiteController::class, 'contactPage']);
     Route::get('/quote', [SiteController::class, 'quotePage']);
     Route::get('/book', [SiteController::class, 'book']);
+    Route::get('/resume', [ResumeController::class, 'show']);
     Route::get('/privacy', [SiteController::class, 'privacy']);
     Route::get('/affiliate-disclosure', [SiteController::class, 'affiliate']);
     Route::get('/blog', [SiteController::class, 'blog']);
@@ -25,17 +26,18 @@ Route::middleware([Maintenance::class, TrackVisit::class])->group(function () {
     Route::get('/blog/{slug}', [SiteController::class, 'post']);
 });
 
-Route::post('/contact', [SiteController::class, 'contact'])->middleware([Maintenance::class, 'throttle:5,1']);
-Route::post('/quote', [SiteController::class, 'quote'])->middleware([Maintenance::class, 'throttle:5,1']);
-Route::post('/subscribe', [SiteController::class, 'subscribe'])->middleware([Maintenance::class, 'throttle:5,1']);
+Route::post('/contact', [SiteController::class, 'contact'])->middleware([Maintenance::class, 'throttle:5,1', CaptchaCheck::class]);
+Route::post('/quote', [SiteController::class, 'quote'])->middleware([Maintenance::class, 'throttle:5,1', CaptchaCheck::class]);
+Route::post('/subscribe', [SiteController::class, 'subscribe'])->middleware([Maintenance::class, 'throttle:5,1', CaptchaCheck::class]);
+Route::post('/blog/{slug}/comment', [SiteController::class, 'comment'])->middleware([Maintenance::class, 'throttle:6,1', CaptchaCheck::class]);
 
-Route::post('/blog/{slug}/comment', [SiteController::class, 'comment'])->middleware([Maintenance::class, 'throttle:6,1']);
 Route::post('/blog/{slug}/like', [SiteController::class, 'like'])->middleware([Maintenance::class, 'throttle:30,1']);
 Route::post('/blog/{slug}/share', [SiteController::class, 'share'])->middleware([Maintenance::class, 'throttle:30,1']);
 Route::post('/cta', [SiteController::class, 'cta'])->middleware('throttle:60,1');
 Route::get('/unsubscribe/{token}', [SiteController::class, 'unsubscribePage']);
 Route::post('/unsubscribe/{token}', [SiteController::class, 'unsubscribe'])->middleware('throttle:10,1');
 Route::get('/sitemap.xml', [SiteController::class, 'sitemap']);
+Route::get('/resume.pdf', [ResumeController::class, 'pdf'])->middleware(Maintenance::class);
 Route::get('/robots.txt', fn() => response("User-agent: *\nDisallow: /admin\nDisallow: /unsubscribe\nSitemap: " . url('/sitemap.xml') . "\n")->header('Content-Type', 'text/plain'));
 
 Route::get('/admin/login', [AdminController::class, 'loginForm'])->name('login');
@@ -87,6 +89,7 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
         Route::get('settings', [AdminController::class, 'settings']);
         Route::post('settings', [AdminController::class, 'settingsSave']);
         Route::post('settings/test-mail', [AdminController::class, 'testMail']);
+        Route::get('health', [HealthController::class, 'index']);
     });
     Route::middleware(Perm::class . ':backup')->group(function () {
         Route::get('backup', [AdminController::class, 'backupForm']);
@@ -124,6 +127,17 @@ Route::middleware(['auth', Perm::class . ':dashboard'])->prefix('admin')->group(
     Route::post('projects/{id}/gallery/order', [GalleryController::class, 'order']);
     Route::post('gallery/{mid}/caption', [GalleryController::class, 'caption']);
     Route::delete('gallery/{mid}', [GalleryController::class, 'destroy']);
+
+    Route::middleware(Perm::class . ':content')->group(function () {
+        Route::get('redirects', [RedirectController::class, 'index']);
+        Route::post('redirects', [RedirectController::class, 'store']);
+        Route::delete('redirects/{id}', [RedirectController::class, 'destroy']);
+        Route::post('redirects/404/clear-bots', [RedirectController::class, 'clearBots']);
+        Route::post('redirects/404/{id}/fix', [RedirectController::class, 'fix']);
+        Route::post('redirects/404/{id}/ignore', [RedirectController::class, 'ignore']);
+        Route::post('redirects/404/{id}/restore', [RedirectController::class, 'restore']);
+        Route::delete('redirects/404/{id}', [RedirectController::class, 'forget']);
+    });
 
     Route::get('{t}', [AdminController::class, 'index']);
     Route::get('{t}/create', [AdminController::class, 'form']);

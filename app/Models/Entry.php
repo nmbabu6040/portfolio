@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Support\Activity;
+use App\Support\{Activity, Redirects};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -16,8 +16,18 @@ class Entry extends Model
     protected static function booted(): void
     {
         static::created(fn($m) => self::log($m, 'created'));
-        static::updated(fn($m) => self::log($m, 'updated'));
+        static::updated(function ($m) {
+            self::log($m, 'updated');
+            self::slugRedirect($m);
+        });
         static::deleted(fn($m) => self::log($m, 'deleted'));
+    }
+    private static function slugRedirect($m): void
+    {
+        $t = $m->getTable();
+        if (in_array($t, ['posts', 'services']) && $m->wasChanged('slug') && $m->getOriginal('slug')) {
+            Redirects::slugChanged($t === 'posts' ? '/blog/' : '/services/', (string) $m->getOriginal('slug'), (string) $m->slug);
+        }
     }
     private static function log($m, string $event): void
     {
