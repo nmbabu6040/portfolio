@@ -12,6 +12,7 @@ class CaptchaCheck
     {
         if (Captcha::ok($r)) return $next($r);
         $to = preg_replace('/#.*$/', '', url()->previous());
+        if (parse_url($to, PHP_URL_HOST) !== $r->getHost()) $to = url('/');
         if ($r->is('subscribe')) $to .= '#nl';
         if ($r->is('blog/*/comment')) $to .= '#comments';
         return redirect($to)

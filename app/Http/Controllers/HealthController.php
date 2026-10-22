@@ -34,15 +34,31 @@ class HealthController extends Controller
 
         $x = [];
         $x[] = version_compare(PHP_VERSION, '8.2', '>=') ? $r('ok', 'PHP version', PHP_VERSION) : $r('bad', 'PHP version', PHP_VERSION, 'Laravel 12 needs PHP 8.2 or newer.');
-        foreach (['pdo_mysql' => 'the database', 'mbstring' => 'text handling', 'openssl' => 'encryption', 'fileinfo' => 'file uploads', 'dom' => 'cleaning rich text', 'curl' => 'web requests (CAPTCHA, email)', 'gd' => 'image processing'] as $e => $why) {
+        foreach (
+            [
+                'pdo_mysql' => 'the database',
+                'mbstring' => 'text handling',
+                'openssl' => 'encryption',
+                'fileinfo' => 'file uploads',
+                'dom' => 'cleaning rich text',
+                'curl' => 'web requests (CAPTCHA, email)',
+                'gd' => 'image processing'
+            ] as $e => $why
+        ) {
             $x[] = extension_loaded($e) ? $r('ok', "PHP extension: $e") : $r('bad', "PHP extension missing: $e", "Needed for $why.", "Enable extension=$e in php.ini, or ask your hosting.");
         }
-        foreach (['zip' => 'backups and PDF files', 'exif' => 'fixing the rotation of phone photos'] as $e => $why) {
+        foreach (
+            [
+                'zip' => 'backups and PDF files',
+                'exif' => 'fixing the rotation of phone photos'
+            ] as $e => $why
+        ) {
             $x[] = extension_loaded($e) ? $r('ok', "PHP extension: $e") : $r('warn', "PHP extension missing: $e", "Used for $why.", "Enable extension=$e in php.ini.");
         }
         $x[] = function_exists('imagewebp') ? $r('ok', 'WebP images', 'Uploads are converted to WebP.') : $r('warn', 'WebP is not supported', 'Images are saved as they were uploaded.', 'Use a PHP build whose GD supports WebP.');
         $x[] = function_exists('imageavif') ? $r('ok', 'AVIF images', 'AVIF copies are created.') : $r('info', 'AVIF is not supported', 'Only WebP sizes are created. This is fine.');
         $x[] = $r('info', 'Upload limits', 'upload_max_filesize ' . ini_get('upload_max_filesize') . ', post_max_size ' . ini_get('post_max_size') . ', memory_limit ' . ini_get('memory_limit'));
+
         $sections['Server'] = $x;
 
         $x = [];
@@ -59,6 +75,12 @@ class HealthController extends Controller
         $x[] = config('app.timezone') === 'UTC' ? $r('warn', 'Timezone is UTC', 'Times in the admin and the weekly backup use UTC.', 'Set APP_TIMEZONE=Asia/Dhaka in .env.') : $r('ok', 'Timezone', config('app.timezone'));
         $x[] = app()->configurationIsCached() ? $r('ok', 'Config is cached')
             : ($prod ? $r('warn', 'Config is not cached', 'The site is a little slower.', 'Run php artisan optimize on the server.') : $r('info', 'Config is not cached', 'Normal while you build the site.'));
+
+        $x[] = config('session.secure') ? $r('ok', 'Session cookie is HTTPS-only') : ($prod ? $r('warn', 'Session cookie is not HTTPS-only', '', 'Set SESSION_SECURE_COOKIE=true in .env once HTTPS works.') : $r('info', 'Session cookie is not HTTPS-only', 'Fine on your own computer.'));
+        $x[] = (int) config('session.lifetime') <= 60 ? $r('ok', 'Admin sessions expire after ' . config('session.lifetime') . ' minutes of inactivity') : $r('info', 'Sessions last ' . config('session.lifetime') . ' minutes', '', 'A shorter time is safer. Set SESSION_LIFETIME=60 in .env.');
+        $x[] = config('session.encrypt') ? $r('ok', 'Session data is encrypted') : $r('info', 'Session data is not encrypted', '', 'Set SESSION_ENCRYPT=true in .env for extra safety.');
+        $x[] = config('security.csp') === 'enforce' ? $r('ok', 'Security headers and CSP are active') : $r('warn', 'CSP mode is ' . config('security.csp'), '', 'Set CSP_MODE=enforce in .env.');
+
         $sections['Environment'] = $x;
 
         $x = [];

@@ -58,19 +58,64 @@
             new bootstrap.Modal("#lb").show();
         }),
     );
+
     // scroll: progress bar, navbar shadow, back-to-top
-    const pg = document.getElementById("prog"),
-        nv = document.querySelector(".navbar"),
-        tp = document.getElementById("top");
-    const onS = () => {
-        const h = r.scrollHeight - innerHeight;
-        pg.style.width = (h > 0 ? (scrollY / h) * 100 : 0) + "%";
-        nv.classList.toggle("sc", scrollY > 20);
-        tp.classList.toggle("d-none", scrollY < 600);
-    };
-    addEventListener("scroll", onS, { passive: true });
-    onS();
-    tp.onclick = () => scrollTo({ top: 0 });
+    // const pg = document.getElementById("prog"),
+    //     nv = document.querySelector(".navbar"),
+    //     tp = document.getElementById("top");
+    // const onS = () => {
+    //     const h = r.scrollHeight - innerHeight;
+    //     pg.style.width = (h > 0 ? (scrollY / h) * 100 : 0) + "%";
+    //     nv.classList.toggle("sc", scrollY > 20);
+    //     tp.classList.toggle("d-none", scrollY < 600);
+    // };
+    // addEventListener("scroll", onS, { passive: true });
+    // onS();
+    // tp.onclick = () => scrollTo({ top: 0 });
+
+    // Scroll effects
+    const pg = document.getElementById("prog");
+    const nv = document.querySelector(".navbar");
+    const tp = document.getElementById("top");
+
+    let scrollTicking = false;
+
+    function updateScrollUI() {
+        const y = window.scrollY;
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+
+        if (pg) {
+            pg.style.width = (h > 0 ? (y / h) * 100 : 0) + "%";
+        }
+
+        if (nv) {
+            nv.classList.toggle("sc", y > 20);
+        }
+
+        if (tp) {
+            tp.classList.toggle("d-none", y < 600);
+        }
+
+        scrollTicking = false;
+    }
+
+    window.addEventListener(
+        "scroll",
+        () => {
+            if (!scrollTicking) {
+                scrollTicking = true;
+                requestAnimationFrame(updateScrollUI);
+            }
+        },
+        { passive: true },
+    );
+
+    updateScrollUI();
+
+    if (tp) {
+        tp.onclick = () => window.scrollTo({ top: 0 });
+    }
+
     // rotating words in hero
     const rot = document.getElementById("rot");
     if (rot && !matchMedia("(prefers-reduced-motion:reduce)").matches) {
@@ -88,6 +133,7 @@
             }, 300);
         }, 2600);
     }
+
     // close mobile menu after click
     $$(".navbar-nav a").forEach((a) =>
         a.addEventListener("click", () => {

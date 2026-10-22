@@ -6,7 +6,27 @@ use App\Models\Entry;
 
 class Ui
 {
-    const DEV = ['HTML5' => 'html5', 'CSS3' => 'css3', 'JavaScript' => 'javascript', 'AJAX' => 'javascript', 'Bootstrap' => 'bootstrap', 'jQuery' => 'jquery', 'PHP' => 'php', 'Laravel' => 'laravel', 'MySQL' => 'mysql', 'Git' => 'git', 'GitHub' => 'github', 'VS Code' => 'vscode', 'Composer' => 'composer', 'npm' => 'npm', 'Apache' => 'apache', 'Adobe Photoshop' => 'photoshop', 'Adobe Illustrator' => 'illustrator', 'Canva' => 'canva', 'Google Analytics' => 'googleanalytics'];
+    const DEV = [
+        'HTML5' => 'html5',
+        'CSS3' => 'css3',
+        'JavaScript' => 'javascript',
+        'AJAX' => 'javascript',
+        'Bootstrap' => 'bootstrap',
+        'jQuery' => 'jquery',
+        'PHP' => 'php',
+        'Laravel' => 'laravel',
+        'MySQL' => 'mysql',
+        'Git' => 'git',
+        'GitHub' => 'github',
+        'VS Code' => 'vscode',
+        'Composer' => 'composer',
+        'npm' => 'npm',
+        'Apache' => 'apache',
+        'Adobe Photoshop' => 'photoshop',
+        'Adobe Illustrator' => 'illustrator',
+        'Canva' => 'canva',
+        'Google Analytics' => 'googleanalytics'
+    ];
     public static function list($v, string $sep = ','): array
     {
         return array_values(array_filter(array_map('trim', explode($sep, (string) $v))));
@@ -14,7 +34,11 @@ class Ui
     public static function logo(string $n): ?string
     {
         $k = self::DEV[$n] ?? null;
-        return $k ? "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/$k/$k-original.svg" : null;
+        if (!$k) return null;
+        // return is_file(public_path("vendor/devicon/$k.svg")) ? asset("vendor/devicon/$k.svg") : "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/$k/$k-original.svg";
+        return is_file(public_path("vendor/devicon/$k.svg"))
+            ? asset("vendor/devicon/$k.svg")
+            : null;
     }
     public static function initials(string $n): string
     {
@@ -67,7 +91,16 @@ class Ui
         if (!$path) return '';
         $d = self::dims($path);
         $attr = ' alt="' . e($alt) . '"' . ($class ? ' class="' . e($class) . '"' : '') . ($d ? ' width="' . $d[0] . '" height="' . $d[1] . '"' : '') . ' decoding="async"';
-        $attr .= $load === 'lazy' ? ' loading="lazy"' : ($load === 'high' ? ' fetchpriority="high"' : '');
+
+        // $attr .= $load === 'lazy' ? ' loading="lazy"' : ($load === 'high' ? ' fetchpriority="high"' : '');
+        if ($load === 'lazy') {
+            $attr .= ' loading="lazy"';
+        } elseif ($load === 'high') {
+            $attr .= ' loading="eager" fetchpriority="high"';
+        } else {
+            $attr .= ' loading="eager"';
+        }
+
         $img = '<img src="' . e(asset($path)) . '"' . $attr . '>';
         if (!$d || !preg_match('/\.webp$/i', $path)) return $img;
         $base = substr($path, 0, -5);
@@ -108,5 +141,15 @@ class Ui
         if (trim($v) === '') return '';
         if (strip_tags($v) === $v) return collect(preg_split('/\R{2,}/', trim($v)))->map(fn($p) => '<p>' . nl2br(e(trim($p))) . '</p>')->implode('');
         return Html::render($v);
+    }
+
+    // local copy in public/vendor if it was downloaded (php artisan assets:vendor), otherwise the CDN address
+    public static function lib(string $rel, string $cdn): string
+    {
+        return is_file(public_path("vendor/$rel")) ? self::v("vendor/$rel") : $cdn;
+    }
+    public static function selfFonts(): bool
+    {
+        return is_file(public_path('vendor/fonts.css')) && is_file(public_path('vendor/fonts/inter.woff2'));
     }
 }

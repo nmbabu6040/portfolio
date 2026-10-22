@@ -8,12 +8,24 @@
     <meta name="csrf" content="{{ csrf_token() }}">
     <title>Admin</title>
     <link rel="icon" href="{{ asset(\App\Models\Setting::map()['favicon'] ?? 'favicon.ico') }}">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
-        rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
+    @if (\App\Support\Ui::selfFonts())
+        <link href="{{ \App\Support\Ui::v('vendor/fonts.css') }}" rel="stylesheet">
+    @else
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+            rel="stylesheet">
+    @endif
+
+    <link rel="stylesheet"
+        href="{{ \App\Support\Ui::lib('bootstrap/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css') }}">
+
+    <link rel="stylesheet"
+        href="{{ \App\Support\Ui::lib('bootstrap-icons/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css') }}">
+
+    <link rel="stylesheet"
+        href="{{ \App\Support\Ui::lib('quill/quill.snow.css', 'https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css') }}">
+
     <link href="{{ asset('css/admin.css') }}" rel="stylesheet">
 </head>
 
@@ -235,9 +247,17 @@
             <div class="w-100" style="max-width:420px">@yield('c')</div>
         </div>
     @endauth
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script
+        src="{{ \App\Support\Ui::lib('bootstrap/bootstrap.bundle.min.js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js') }}">
+    </script>
+
+    <script src="{{ \App\Support\Ui::lib('quill/quill.js', 'https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js') }}">
+    </script>
+
+    <script
+        src="{{ \App\Support\Ui::lib('sortable/Sortable.min.js', 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js') }}">
+    </script>
+
     <script src="{{ asset('js/admin.js') }}"></script>
 </body>
 

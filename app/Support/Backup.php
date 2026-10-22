@@ -63,7 +63,10 @@ class Backup
     public static function run(bool $email = true, string $by = 'Automatic backup'): array
     {
         @set_time_limit(300);
-        $save = fn(string $v) => DB::table('settings')->updateOrInsert(['name' => 'last_auto_backup'], ['value' => now()->format('d M Y, H:i') . ' | ' . $v]);
+        $save = function (string $v) {
+            DB::table('settings')->updateOrInsert(['name' => 'last_auto_backup'], ['value' => now()->format('d M Y, H:i') . ' | ' . $v]);
+            Setting::forget();
+        };
         try {
             $name = 'portfolio-' . now()->format('Y-m-d-His') . '.zip';
             self::zip(self::dir() . '/' . $name, true);

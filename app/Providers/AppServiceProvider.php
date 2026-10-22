@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\{Entry, Post, User};
 use App\Support\{Activity, LoginAlert};
 use Illuminate\Auth\Events\{Login, Logout};
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\{Event, View};
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+        // behind Cloudflare or another proxy: read the real HTTPS and visitor IP (set SECURITY_PROXIES=* in .env)
+        if ($p = config('security.proxies')) {
+            Request::setTrustedProxies($p === '*' ? ['*'] : explode(',', $p), Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+        }
         $safe = function (callable $q) {
             try {
                 return $q();

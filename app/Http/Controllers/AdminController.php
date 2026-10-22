@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, RateLimiter, Schema, Storage};
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class AdminController extends Controller
 {
@@ -143,7 +144,10 @@ class AdminController extends Controller
     }
     public function passwordSave(Request $r)
     {
-        $r->validate(['current_password' => 'required', 'password' => 'required|min:10|confirmed|different:current_password']);
+        $r->validate([
+            'current_password' => 'required',
+            'password' => ['required', Password::min(12)->mixedCase()->numbers(), 'confirmed', 'different:current_password']
+        ]);
         $u = $r->user();
         if (!Hash::check($r->current_password, $u->password)) return back()->withErrors(['current_password' => 'Current password is wrong.']);
         $u->password = Hash::make($r->password);
@@ -390,6 +394,7 @@ class AdminController extends Controller
         foreach ($this->prep($r, $this->flat()) as $k => $v) Setting::updateOrCreate(['name' => $k], ['value' => $v]);
         return back()->with('ok', 'Saved.');
     }
+
     public function testMail()
     {
         $s = Setting::map();
@@ -644,7 +649,7 @@ class AdminController extends Controller
             'name' => 'required|max:100',
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($id)],
             'role' => $self ? ['nullable'] : ['required', Rule::in(array_keys($this->assignable()))],
-            'password' => [$u ? 'nullable' : 'required', 'min:10', 'max:100'],
+            'password' => [$u ? 'nullable' : 'required', Password::min(12)->mixedCase()->numbers(), 'max:100'],
         ]);
         $active = $r->boolean('active');
         if ($self) {

@@ -15,4 +15,5 @@ Schedule::command('backup:run')->weeklyOn(0, '03:00')->withoutOverlapping();
 // Heartbeat: lets the Site health page know that the scheduler is running.
 Schedule::call(function () {
     DB::table('settings')->updateOrInsert(['name' => 'scheduler_heartbeat'], ['value' => now()->toDateTimeString()]);
+    \App\Models\Setting::forget();
 })->everyFiveMinutes();

@@ -11,30 +11,38 @@
     <meta property="og:title" content="@yield('title')">
     <meta property="og:description" content="@yield('desc')">
     <meta property="og:url" content="{{ url()->current() }}">
+
     @hasSection('og_image')
         <meta property="og:image" content="@yield('og_image')">
     @elseif(!empty($s['logo']))
         <meta property="og:image" content="{{ asset($s['logo']) }}">
     @endif
+
     <meta name="twitter:card" content="summary_large_image">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <link rel="icon" href="{{ !empty($s['favicon']) ? asset($s['favicon']) : asset('favicon.ico') }}">
+
     @if (!empty($s['favicon']))
         <link rel="apple-touch-icon" href="{{ asset($s['favicon']) }}">
     @endif
+
     @if (!empty($s['gsc_verify']))
         <meta name="google-site-verification" content="{{ $s['gsc_verify'] }}">
     @endif
+
     @if (!empty($s['ga_id']))
         <script>
             window.GA_ID = '{{ $s['ga_id'] }}';
         </script>
     @endif
+
     @if (!empty($s['turnstile_site']) && !empty($s['turnstile_secret']))
         <script>
             window.TS_KEY = '{{ $s['turnstile_site'] }}';
         </script>
     @endif
+
     @stack('head')
     <script>
         try {
@@ -43,13 +51,26 @@
         } catch (e) {}
     </script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
-        rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    @if (\App\Support\Ui::selfFonts())
+        <link rel="preload" as="font" type="font/woff2" crossorigin
+            href="{{ asset('vendor/fonts/inter.woff2') }}">
+        <link href="{{ \App\Support\Ui::v('vendor/fonts.css') }}" rel="stylesheet">
+    @else
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+            rel="stylesheet">
+    @endif
+
+    <link rel="stylesheet"
+        href="{{ \App\Support\Ui::lib('bootstrap/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css') }}">
+
+    <link rel="stylesheet"
+        href="{{ \App\Support\Ui::lib('bootstrap-icons/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css') }}">
+
+
     <link href="{{ \App\Support\Ui::v('css/site.css') }}" rel="stylesheet">
 </head>
 @php
@@ -265,7 +286,9 @@
     @endif
     <button class="btn btn-primary d-none" id="top" aria-label="Back to top"><i
             class="bi bi-arrow-up"></i></button>
-    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+        src="{{ \App\Support\Ui::lib('bootstrap/bootstrap.bundle.min.js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js') }}">
+    </script>
     <script defer src="{{ \App\Support\Ui::v('js/site.js') }}"></script>
 
 </body>
