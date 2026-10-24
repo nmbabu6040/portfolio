@@ -58,14 +58,18 @@
     <link
         href="{{ \App\Support\Ui::lib('bootstrap/bootstrap.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css') }}"
         rel="stylesheet">
-    <link
-        href="{{ \App\Support\Ui::lib('bootstrap-icons/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css') }}"
-        rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript>
+    @if (is_file(public_path('vendor/icons.css')))
+        <link href="{{ \App\Support\Ui::v('vendor/icons.css') }}" rel="stylesheet">
+    @else
         <link
             href="{{ \App\Support\Ui::lib('bootstrap-icons/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css') }}"
-            rel="stylesheet">
-    </noscript>
+            rel="stylesheet" media="print" onload="this.media='all'">
+        <noscript>
+            <link
+                href="{{ \App\Support\Ui::lib('bootstrap-icons/font/bootstrap-icons.min.css', 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css') }}"
+                rel="stylesheet">
+        </noscript>
+    @endif
     <link href="{{ \App\Support\Ui::v('css/site.css') }}" rel="stylesheet">
 </head>
 @php
