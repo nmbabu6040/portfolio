@@ -1,7 +1,12 @@
 @extends('admin.base')
 @section('c')
-    <div class="text-center mb-4"><span class="sb-logo mx-auto mb-3" style="width:56px;height:56px;font-size:1.6rem"><i
-                class="bi bi-speedometer2"></i></span>
+    @php $lg = \App\Models\Setting::map()['logo'] ?? null; @endphp
+    <div class="text-center mb-4">
+        @if ($lg)
+            <div class="mb-3"><span class="sb-wide" style="padding:10px 16px"><img src="{{ asset($lg) }}" alt=""
+                    style="height:52px;max-width:240px"></span></div>@else<span class="sb-logo mx-auto mb-3"
+                style="width:56px;height:56px;font-size:1.6rem"><i class="bi bi-speedometer2"></i></span>
+        @endif
         <h1 class="h4 mb-1">Admin login</h1>
         <p class="text-body-secondary small mb-0">Sign in to manage your portfolio</p>
     </div>

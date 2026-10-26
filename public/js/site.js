@@ -8,6 +8,8 @@
     };
     var token = (document.querySelector("meta[name=csrf-token]") || {}).content;
     var root = document.documentElement;
+    var calm = matchMedia("(prefers-reduced-motion:reduce)").matches;
+    var fine = matchMedia("(hover:hover) and (pointer:fine)").matches;
 
     // filters (technology and projects)
     $$("[data-filters]").forEach(function (g) {
@@ -21,10 +23,13 @@
             });
             if (t)
                 $$("[data-cat]", t).forEach(function (i) {
-                    i.classList.toggle(
-                        "d-none",
-                        f !== "All" && i.dataset.cat !== f,
-                    );
+                    var hide = f !== "All" && i.dataset.cat !== f;
+                    i.classList.toggle("d-none", hide);
+                    if (!hide && !calm) {
+                        i.classList.remove("pop");
+                        void i.offsetWidth;
+                        i.classList.add("pop");
+                    }
                 });
         });
     });
@@ -83,17 +88,37 @@
         });
     });
 
-    // scroll: progress bar, navbar shadow, back to top
+    // scroll: progress bar, navbar (shadow, hide on scroll down), back to top, hero parallax
     var pg = $("prog"),
         nv = document.querySelector(".navbar"),
         tp = $("top"),
-        tick = false;
+        tick = false,
+        lastY = scrollY;
+    var b1 = document.querySelector(".hero .b1"),
+        b2 = document.querySelector(".hero .b2");
     function onScroll() {
         tick = false;
-        var h = root.scrollHeight - innerHeight;
-        if (pg) pg.style.width = (h > 0 ? (scrollY / h) * 100 : 0) + "%";
-        if (nv) nv.classList.toggle("sc", scrollY > 20);
-        if (tp) tp.classList.toggle("d-none", scrollY < 600);
+        var y = scrollY,
+            h = root.scrollHeight - innerHeight;
+        if (pg) pg.style.width = (h > 0 ? (y / h) * 100 : 0) + "%";
+        if (nv) {
+            nv.classList.toggle("sc", y > 20);
+            var menu = $("nav"),
+                open = menu && menu.classList.contains("show");
+            if (open || y < 160) nv.classList.remove("nav-hide");
+            else if (Math.abs(y - lastY) > 6) {
+                nv.classList.toggle("nav-hide", y > lastY && y > 240);
+                lastY = y;
+            }
+        }
+        if (tp) tp.classList.toggle("d-none", y < 600);
+        if (fine && !calm && b1 && y < 1200) {
+            b1.style.transform =
+                "translate3d(0," + (y * 0.09).toFixed(1) + "px,0)";
+            if (b2)
+                b2.style.transform =
+                    "translate3d(0," + (-y * 0.06).toFixed(1) + "px,0)";
+        }
     }
     addEventListener(
         "scroll",
@@ -113,7 +138,7 @@
 
     // rotating words in the hero
     var rot = $("rot");
-    if (rot && !matchMedia("(prefers-reduced-motion:reduce)").matches) {
+    if (rot && !calm) {
         var w = rot.dataset.words
                 .split("|")
                 .map(function (s) {
@@ -140,6 +165,212 @@
                 bootstrap.Collapse.getOrCreateInstance(c).hide();
         });
     });
+
+    // testimonial slider: swipe, arrows, dots, keyboard, autoplay that pauses when you touch it
+    $$("[data-slider]").forEach(function (sl) {
+        var tr = sl.querySelector(".sl-track"),
+            items = $$(".sl-item", tr),
+            dots = sl.querySelector(".sl-dots"),
+            wrap = sl.parentNode;
+        var prev = wrap.querySelector("[data-sl-prev]"),
+            next = wrap.querySelector("[data-sl-next]"),
+            nav = wrap.querySelector(".sl-nav");
+        var idx = 0,
+            timer = null,
+            hold = false,
+            visible = false,
+            sTick = false,
+            built = false;
+        function step() {
+            return items.length > 1
+                ? Math.max(1, items[1].offsetLeft - items[0].offsetLeft)
+                : 1;
+        }
+        function perView() {
+            return Math.max(1, Math.round(tr.clientWidth / step()));
+        }
+        function pages() {
+            return Math.max(1, items.length - perView() + 1);
+        }
+        function mark() {
+            idx = Math.min(
+                pages() - 1,
+                Math.max(0, Math.round(tr.scrollLeft / step())),
+            );
+            $$(".sl-dot", dots).forEach(function (d, i) {
+                d.classList.toggle("on", i === idx);
+            });
+        }
+        function go(i) {
+            var n = pages();
+            idx = (i + n) % n;
+            tr.scrollTo({
+                left: idx * step(),
+                behavior: calm ? "auto" : "smooth",
+            });
+        }
+        function build() {
+            if (!tr.clientWidth) return;
+            built = true;
+            var n = pages();
+            dots.innerHTML = "";
+            if (nav) nav.style.visibility = n > 1 ? "" : "hidden";
+            if (n < 2) return;
+            for (var i = 0; i < n; i++) {
+                var d = document.createElement("button");
+                d.type = "button";
+                d.className = "sl-dot";
+                d.setAttribute("aria-label", "Go to review " + (i + 1));
+                (function (k) {
+                    d.onclick = function () {
+                        go(k);
+                    };
+                })(i);
+                dots.appendChild(d);
+            }
+            mark();
+        }
+        function play() {
+            if (timer) clearInterval(timer);
+            timer = null;
+            if (calm || pages() < 2) return;
+            timer = setInterval(function () {
+                if (!hold && visible) go(idx + 1);
+            }, 6500);
+        }
+        sl.addEventListener("pointerenter", function () {
+            hold = true;
+        });
+        sl.addEventListener("pointerleave", function () {
+            hold = false;
+        });
+        sl.addEventListener("focusin", function () {
+            hold = true;
+        });
+        sl.addEventListener("focusout", function () {
+            hold = false;
+        });
+        sl.addEventListener(
+            "touchstart",
+            function () {
+                hold = true;
+            },
+            { passive: true },
+        );
+        sl.addEventListener(
+            "touchend",
+            function () {
+                setTimeout(function () {
+                    hold = false;
+                }, 4000);
+            },
+            { passive: true },
+        );
+        tr.addEventListener(
+            "scroll",
+            function () {
+                if (!sTick) {
+                    sTick = true;
+                    requestAnimationFrame(function () {
+                        sTick = false;
+                        mark();
+                    });
+                }
+            },
+            { passive: true },
+        );
+        tr.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowRight") {
+                go(idx + 1);
+                e.preventDefault();
+            }
+            if (e.key === "ArrowLeft") {
+                go(idx - 1);
+                e.preventDefault();
+            }
+        });
+        if (prev)
+            prev.onclick = function () {
+                go(idx - 1);
+            };
+        if (next)
+            next.onclick = function () {
+                go(idx + 1);
+            };
+        var rT;
+        addEventListener("resize", function () {
+            clearTimeout(rT);
+            rT = setTimeout(function () {
+                build();
+                play();
+            }, 200);
+        });
+        if ("IntersectionObserver" in window) {
+            new IntersectionObserver(
+                function (e) {
+                    visible = e[0].isIntersecting;
+                    if (visible && !built) {
+                        build();
+                        play();
+                    }
+                },
+                { threshold: 0.3 },
+            ).observe(sl);
+        } else {
+            visible = true;
+        }
+        build();
+        play();
+    });
+
+    // card tilt and light that follows the mouse (only on devices with a mouse)
+    if (fine && !calm) {
+        $$(
+            ".card.tech,.card.proj,.card.svc,.card.step,.tile,.sl-item,.frame",
+        ).forEach(function (c) {
+            var raf = 0;
+            c.addEventListener("pointermove", function (e) {
+                if (raf) return;
+                raf = requestAnimationFrame(function () {
+                    raf = 0;
+                    var r = c.getBoundingClientRect(),
+                        x = (e.clientX - r.left) / r.width,
+                        y = (e.clientY - r.top) / r.height;
+                    c.style.setProperty("--mx", (x * 100).toFixed(1) + "%");
+                    c.style.setProperty("--my", (y * 100).toFixed(1) + "%");
+                    c.style.setProperty(
+                        "--rx",
+                        ((0.5 - y) * 6).toFixed(2) + "deg",
+                    );
+                    c.style.setProperty(
+                        "--ry",
+                        ((x - 0.5) * 8).toFixed(2) + "deg",
+                    );
+                    c.classList.add("tilt");
+                });
+            });
+            c.addEventListener("pointerleave", function () {
+                c.classList.remove("tilt");
+                c.style.removeProperty("--rx");
+                c.style.removeProperty("--ry");
+            });
+        });
+        // big buttons lean a little towards the mouse
+        $$(".hero .btn-lg,.cta-box .btn-lg").forEach(function (b) {
+            b.addEventListener("pointermove", function (e) {
+                var r = b.getBoundingClientRect();
+                b.style.transform =
+                    "translate(" +
+                    ((e.clientX - r.left - r.width / 2) * 0.12).toFixed(1) +
+                    "px," +
+                    ((e.clientY - r.top - r.height / 2) * 0.25).toFixed(1) +
+                    "px)";
+            });
+            b.addEventListener("pointerleave", function () {
+                b.style.transform = "";
+            });
+        });
+    }
 
     // share: copy link and the phone share sheet
     $$("[data-copy]").forEach(function (b) {
@@ -395,6 +626,28 @@
             if (!modalEl.classList.contains("show")) return;
             if (e.key === "ArrowLeft") show(cur - 1);
             if (e.key === "ArrowRight") show(cur + 1);
+        });
+    })();
+
+    // icon safety net: if a page uses an icon that is not in the small icon file, switch to the full icon font
+    (function () {
+        if (!root.classList.contains("ic-s") || !window.IC_FULL) return;
+        addEventListener("load", function () {
+            setTimeout(function () {
+                var miss = $$("i.bi").some(function (i) {
+                    return !getComputedStyle(i).getPropertyValue("--bi").trim();
+                });
+                if (!miss) return;
+                root.classList.remove("ic-s");
+                var l = document.createElement("link");
+                l.rel = "stylesheet";
+                l.href = window.IC_FULL;
+                document.head.appendChild(l);
+                if (window.console)
+                    console.warn(
+                        "A missing icon was found, so the full icon font is used. Run: php artisan assets:icons",
+                    );
+            }, 400);
         });
     })();
 })();

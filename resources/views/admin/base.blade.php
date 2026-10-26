@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex">
     <meta name="csrf" content="{{ csrf_token() }}">
     <title>Admin</title>
-    <link rel="icon" href="{{ asset(\App\Models\Setting::map()['favicon'] ?? 'favicon.ico') }}">
+    @include('sections.favicon')
 
     @if (\App\Support\Ui::selfFonts())
         <link href="{{ \App\Support\Ui::v('vendor/fonts.css') }}" rel="stylesheet">
@@ -73,9 +73,11 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <a class="sb-brand" href="/admin"><span class="sb-logo {{ $logo ? 'has-img' : '' }}">
                                 @if ($logo)
-                                    <img src="{{ asset($logo) }}" alt=""
-                                    style="width:100%;height:100%;object-fit:contain">@else<i
-                                        class="bi bi-speedometer2"></i>
+                                    <span class="d-flex flex-column align-items-start gap-1"><span class="sb-wide"><img
+                                                src="{{ asset($logo) }}" alt=""></span><small
+                                        style="color:#7c8bb5;font-size:.72rem">Admin Panel</small></span>@else<span
+                                        class="sb-logo"><i class="bi bi-speedometer2"></i></span><span><b>Admin
+                                            Panel</b><small>Portfolio CMS</small></span>
                                 @endif
                             </span>
                             <span><b>Admin Panel</b><small>Portfolio CMS</small></span></a>

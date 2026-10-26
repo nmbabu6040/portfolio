@@ -496,7 +496,9 @@ class AdminController extends Controller
         $disk->delete('uploads/' . $name);
         if (str_ends_with(strtolower($name), '.webp')) {
             foreach (['jpg', 'avif'] as $e) $disk->delete("uploads/$base.$e");
-            foreach ([240, 480, 800, 1200] as $w) foreach (['webp', 'avif'] as $e) $disk->delete("uploads/$base-$w.$e");
+            foreach ([48, 180] as $z) $disk->delete("uploads/$base-fav$z.png");
+            foreach ([240, 480, 800, 1200] as $w)
+                foreach (['webp', 'avif'] as $e) $disk->delete("uploads/$base-$w.$e");
         }
     }
     private function mediaHay(): array
@@ -519,7 +521,7 @@ class AdminController extends Controller
     private function mediaItems(): array
     {
         $disk = Storage::disk('public');
-        $files = collect($disk->files('uploads'))->filter(fn($f) => preg_match('/\.(webp|jpe?g|png|gif|ico)$/i', $f) && !preg_match('/-\d+\.webp$/i', $f));
+        $files = collect($disk->files('uploads'))->filter(fn($f) => preg_match('/\.(webp|jpe?g|png|gif|ico)$/i', $f) && !preg_match('/-\d+\.webp$/i', $f) && !preg_match('/-fav\d+\.png$/i', $f));
         $webp = $files->filter(fn($f) => str_ends_with(strtolower($f), '.webp'))->map(fn($f) => pathinfo($f, PATHINFO_FILENAME))->all();
         $hay = $this->mediaHay();
         $items = [];

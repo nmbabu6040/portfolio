@@ -152,4 +152,23 @@ class Ui
     {
         return is_file(public_path('vendor/fonts.css')) && is_file(public_path('vendor/fonts/inter.woff2'));
     }
+
+    // favicon tags: small PNG copies are made once from the uploaded image
+    public static function favicon(array $s): array
+    {
+        $p = $s['favicon'] ?? null;
+        if (!$p) return is_file(public_path('favicon.ico')) ? ['icon' => asset('favicon.ico'), 'type' => 'image/x-icon', 'apple' => null] : ['icon' => null, 'type' => null, 'apple' => null];
+        $base = preg_replace('/\.[a-z0-9]+$/i', '', $p);
+        $f48 = "$base-fav48.png";
+        $f180 = "$base-fav180.png";
+        if (!is_file(public_path($f48)) || !is_file(public_path($f180))) {
+            try {
+                Img::icons($p);
+            } catch (\Throwable $e) {
+            }
+        }
+        if (is_file(public_path($f48)) && is_file(public_path($f180))) return ['icon' => asset($f48), 'type' => 'image/png', 'apple' => asset($f180)];
+        $ext = strtolower(pathinfo($p, PATHINFO_EXTENSION));
+        return ['icon' => asset($p), 'type' => ['png' => 'image/png', 'webp' => 'image/webp', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'ico' => 'image/x-icon'][$ext] ?? null, 'apple' => asset($p)];
+    }
 }

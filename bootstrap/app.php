@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
-        $middleware->append(\App\Http\Middleware\GzipHtml::class);
+        // $middleware->append(\App\Http\Middleware\GzipHtml::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Old addresses are redirected, other broken links are recorded in Admin > Redirects & 404.

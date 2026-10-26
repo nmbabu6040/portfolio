@@ -53,10 +53,11 @@ body.adm {
     color: #7c8bb5;
     font-size: 0.72rem;
 }
+
 .sb-logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 13px;
+    width: 90px;
+    height: 50px;
+    border-radius: 10px;
     display: grid;
     place-items: center;
     font-size: 1.25rem;
@@ -361,7 +362,7 @@ body.adm {
 }
 .sb-logo.has-img {
     background: #f1f1f1;
-    padding: 4px;
+    padding: 0px;
     overflow: hidden;
 }
 .fgrid {
@@ -738,4 +739,19 @@ a.row-item:hover {
     background: rgba(255, 255, 255, 0.92);
     width: 30px;
     height: 30px;
+}
+.sb-wide {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px 10px;
+}
+.sb-wide img {
+    display: block;
+    height: 34px;
+    width: auto;
+    max-width: 170px;
+    object-fit: contain;
 }

@@ -58,4 +58,27 @@ class Img
         if (!$avifOnly) imagewebp($im, "$base.webp", 80);
         if (function_exists('imageavif')) @imageavif($im, "$base.avif", 50, 8);
     }
+
+    // square PNG copies of an uploaded icon: 48 px for the browser tab, 180 px for phones
+    public static function icons(string $rel): void
+    {
+        $file = public_path($rel);
+        if (!is_file($file) || !function_exists('imagecreatefromstring')) return;
+        $src = @imagecreatefromstring((string) file_get_contents($file));
+        if (!$src) return;
+        $w = imagesx($src);
+        $h = imagesy($src);
+        $side = min($w, $h);
+        $base = preg_replace('/\.[a-z0-9]+$/i', '', $file);
+        foreach ([48, 180] as $size) {
+            $dst = imagecreatetruecolor($size, $size);
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            imagefill($dst, 0, 0, imagecolorallocatealpha($dst, 0, 0, 0, 127));
+            imagecopyresampled($dst, $src, 0, 0, intdiv($w - $side, 2), intdiv($h - $side, 2), $size, $size, $side, $side);
+            imagepng($dst, "$base-fav$size.png");
+            imagedestroy($dst);
+        }
+        imagedestroy($src);
+    }
 }
